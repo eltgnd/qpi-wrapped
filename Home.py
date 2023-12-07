@@ -20,4 +20,3 @@ with col2:
     st.line_chart(pd.DataFrame({'x':[2,4,6], 'y':[1,2,3]}))
     
     st.text('Lorem ipsum dolor sit amet')
-
