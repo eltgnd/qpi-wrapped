@@ -25,7 +25,7 @@ def get_table(s):
     data = [grade.split('	') for grade in grades if correct_format(grade) and part_of_qpi(grade)]
 
     full_df = pd.DataFrame(data, columns=columns)
-    df = full_df[['Subject Code', 'Units', 'Final Grade']]
+    df = full_df[['School Year', 'Sem', 'Subject Code', 'Units', 'Final Grade']]
 
     return df
 def part_of_qpi(grade):
@@ -43,72 +43,50 @@ def part_of_qpi(grade):
             return False        
     return True
 def compute_qpi(df):
+    # if df == None:
+    #     return ''
+    # else:
     df['Units'] = pd.to_numeric(df['Units'], errors='coerce')
     df['Numerical Grade'] = df['Final Grade'].map(letters)
     total_units = df['Units'].sum()
 
     df['Weighted Grade'] = df['Units'] * df['Numerical Grade']
     weighted_grade = round(df['Weighted Grade'].sum() / total_units, 2)
-    st.write("Weighted Average:", weighted_grade)
+    return weighted_grade
 def save_edits():
     session_state.original_data = session_state.edited_data
-
-if 'original_data' not in session_state:
-    st.session_state.original_data = 'Empty'
-if 'edited_data' not in st.session_state:
-    session_state.edited_data = 'Empty'
-
 def form_callable():
     try:
-        df = get_table(text_input)
+        df = get_table(session_state.str)
         session_state.original_data = df
     except:
         st.write('Error!')
 
+
 # Form
-with st.form(key='form'):
-    text_input = st.text_area('Input your grades from AISIS', key='str')
-    st.form_submit_button(label='Submit', on_click=form_callable)
+# with st.form(key='form'):
+#     s = st.text_area('Input your grades from AISIS', key='str')
+#     submit = st.form_submit_button(label='Submit')
 
-st.write(session_state.original_data)
+# if submit:
+#     with st.form(key='df'):
+#         df = get_table(s)
+#         st.data_editor(df, hide_index=True, use_container_width=True)
+#         update = st.form_submit_button(label='Update table')
 
-# if isinstance(df, pd.DataFrame):
-#     # Session state
-#     if "original_data" not in session_state:
-#         st.session_state.original_data = df
-#     if "edited_data" not in st.session_state:
-#         session_state.edited_data = df.copy()
+# if submit:
+with open('sample_data.txt', 'r') as file:
+    s = file.read()
 
-#     session_state.edited_data = st.data_editor(session_state.original_data, num_rows = 'dynamic')
+df = get_table(s)
+st.dataframe(df, hide_index=True, use_container_width=True)
 
-
-#     st.header('Your QPI')
-#     c = compute_qpi(session_state.edited_data)
-#     st.title(c)
-
-
-# Text processing
-# if s and button:
-
-#     edited_df = st.data_editor(df)
-
-#     st.header('Your QPI')
-#     c = compute_qpi(edited_df)
-#     st.title(c)
-
-# else:
-#     error('Please input grades and press Submit.')
-
-# col1, col2 = st.columns(2)
-# # fig = px.bar(x=["a", "b", "c"], y=[1, 3, 2])
-# with col1:
-#     st.title('3.14')
-#     st.bar_chart(pd.DataFrame({'a':[2], 'b':[4], 'c':[3]}))
-
-#     st.text('Lorem ipsum dolor sit amet')
-# with col2:
-#     st.header('1.59')
-
-#     st.line_chart(pd.DataFrame({'x':[2,4,6], 'y':[1,2,3]}))
-    
-#     st.text('Lorem ipsum dolor sit amet')
+col1, col2 = st.columns([0.2,0.8])
+with col1:
+    with st.container(border=True):
+        qpi = compute_qpi(df)
+        st.caption('Cumulative QPI')
+        st.header(qpi)
+        st.write('')
+with col2:
+    pass 
