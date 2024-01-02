@@ -1,12 +1,13 @@
 import streamlit as st
-# import plotly.express as px
+import plotly.express as px
 import pandas as pd
+from grades import Grades
+from streamlit_extras.add_vertical_space import add_vertical_space
 
 # Settings
 # st.set_page_config(layout='wide')
 
 # Variables
-letters = {'A':4.00, 'B+':3.50, 'B':3.00, 'C+':2.50, 'C':2.00, 'D':1.00, 'F':0.00, 'W':0.00}
 session_state = st.session_state
 
 # Layout
@@ -16,43 +17,6 @@ st.text('description')
 # Functions
 def error(message):
     st.write(message)
-def correct_format(grade):
-    return True
-def get_table(s):
-    columns = 'School Year	Sem	Course	Subject Code	Course Title	Units	Final Grade'.split('	')
-
-    grades = s.split('\n')
-    data = [grade.split('	') for grade in grades if correct_format(grade) and part_of_qpi(grade)]
-
-    full_df = pd.DataFrame(data, columns=columns)
-    df = full_df[['School Year', 'Sem', 'Subject Code', 'Units', 'Final Grade']]
-
-    return df
-def part_of_qpi(grade):
-    d = grade.split('	')
-
-    subj_conditions = ['PHYED', 'NSTP']
-    for s in subj_conditions:
-        l = len(s)
-        if d[3][:l] == s:
-            return False
-
-    grade_conditions = ['WP', 'S']
-    for c in grade_conditions:
-        if c in d:
-            return False        
-    return True
-def compute_qpi(df):
-    # if df == None:
-    #     return ''
-    # else:
-    df['Units'] = pd.to_numeric(df['Units'], errors='coerce')
-    df['Numerical Grade'] = df['Final Grade'].map(letters)
-    total_units = df['Units'].sum()
-
-    df['Weighted Grade'] = df['Units'] * df['Numerical Grade']
-    weighted_grade = round(df['Weighted Grade'].sum() / total_units, 2)
-    return weighted_grade
 def save_edits():
     session_state.original_data = session_state.edited_data
 def form_callable():
@@ -61,7 +25,6 @@ def form_callable():
         session_state.original_data = df
     except:
         st.write('Error!')
-
 
 # Form
 # with st.form(key='form'):
@@ -78,15 +41,37 @@ def form_callable():
 with open('sample_data.txt', 'r') as file:
     s = file.read()
 
-df = get_table(s)
-st.dataframe(df, hide_index=True, use_container_width=True)
+grades = Grades(s)
+st.dataframe(grades.df, hide_index=True, use_container_width=True)
 
-col1, col2 = st.columns([0.2,0.8])
+add_vertical_space(1)
+
+width = [0.3,0.3,0.4] if grades.dean_list() else [0.5,0.5,0]
+col1, col2, col3 = st.columns(width)
 with col1:
     with st.container(border=True):
-        qpi = compute_qpi(df)
-        st.caption('Cumulative QPI')
-        st.header(qpi)
-        st.write('')
+        cumulative_qpi_delta = round(grades.cumulative_qpi() - grades.cumulative_qpi_delta(), 2)
+        st.metric(label="Cumulative QPI 🎯", value=grades.cumulative_qpi(), delta=f'{cumulative_qpi_delta} points')
 with col2:
-    pass 
+    with st.container(border=True):
+        latest_qpi_delta = round(grades.latest_qpi() - grades.latest_qpi_delta(), 2)
+        st.metric(label='Semestral QPI 🪴', value=grades.latest_qpi(), delta=f'{latest_qpi_delta} points')
+with col3:
+    if grades.dean_list():
+        with st.container(border=True):
+            st.metric(label='Dean\'s Lister Award 🎉', value=grades.dean_list(), delta='Congratulations!', delta_color='normal')
+
+add_vertical_space(1)
+
+
+# Graph
+col1, col2 = st.columns([0.8,0.2])
+with col1:
+    with st.container(border=True):
+        fig = px.line(grades.qpi_by_semester(), x='Semester', y='QPI', 
+            title='QPI by Semester',
+            markers=True,
+            height=300)
+        st.plotly_chart(fig, use_container_width=True)
+with col2:
+    st.write('hi')
