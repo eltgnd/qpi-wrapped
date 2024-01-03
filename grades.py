@@ -8,6 +8,7 @@ def get_table(s):
     columns = 'School Year	Sem	Course	Subject Code	Course Title	Units	Final Grade'.split('	')
 
     grades = s.split('\n')
+    grades = grades[1:] if grades[0][:6] == 'School' else grades
     data = [grade.split('	') for grade in grades if correct_format(grade) and part_of_qpi(grade)]
     full_df = pd.DataFrame(data, columns=columns)
     
@@ -78,10 +79,27 @@ class Grades:
         else:
             return 'First Honors'
     
-    def qpi_by_semester(self):
+    def qpi_by_semester(self,choice):
         semesters = self.df['Semester'].unique()
+        if choice:
+            semesters = [sem for sem in semesters if sem[-1] != '0']
         qpi_lst = []
         for s in semesters:
             qpi_lst.append(self.semester_qpi(s))
         new_df = pd.DataFrame(data={'Semester':semesters, 'QPI':qpi_lst})
         return new_df
+    
+    def letter_frequency(self, option):
+        df = self.df
+        if option:
+            df = df[df['Semester'] == self.last_sem].copy()
+        return df.groupby('Final Grade')['Subject Code'].count().reset_index()
+
+    def qpi_by_course(self):
+        df = self.df
+        df['Units'] = pd.to_numeric(df['Units'], errors='coerce')
+        df['Course'] = df['Subject Code'].str.split().str.get(0)
+        new_df = df.groupby('Course').apply(lambda x: x['Weighted Grade'].sum() / x['Units'].sum()).reset_index()
+        new_df['Subjects'] = df.groupby('Course')['Subject Code'].count().reset_index()['Subject Code']
+        return new_df[new_df['Subjects'] >= 2]
+        
