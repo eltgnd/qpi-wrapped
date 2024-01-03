@@ -1,15 +1,25 @@
 import pandas as pd
 
 letters = {'A':4.00, 'B+':3.50, 'B':3.00, 'C+':2.50, 'C':2.00, 'D':1.00, 'F':0.00, 'W':0.00}
+honors_dict = {
+    "Summa Cum Laude": [3.87, 4.00],
+    "Magna Cum Laude": [3.70, 3.86],
+    "Cum Laude": [3.50, 3.69],
+    "Honorable Mention": [3.35, 3.49]
+}
 
 def correct_format(grade):
     return True
-def get_table(s):
+def get_table(s, part_of_qpi_only=True):
     columns = 'School Year	Sem	Course	Subject Code	Course Title	Units	Final Grade'.split('	')
 
     grades = s.split('\n')
     grades = grades[1:] if grades[0][:6] == 'School' else grades
-    data = [grade.split('	') for grade in grades if correct_format(grade) and part_of_qpi(grade)]
+
+    if part_of_qpi_only:
+        data = [grade.split('	') for grade in grades if correct_format(grade) and part_of_qpi(grade)]
+    else:
+        data = [grade.split('	') for grade in grades if correct_format(grade)]
     full_df = pd.DataFrame(data, columns=columns)
     
     full_df['Semester'] = full_df['School Year'] + '-' + full_df['Sem']
@@ -34,6 +44,7 @@ def part_of_qpi(grade):
 class Grades:
     def __init__(self, s):
         self.df = get_table(s)
+        self.df_full = get_table(s, False)
         self.last_sem = self.df.iloc[-1]['Semester']
         self.num_sem = self.df['Semester'].nunique()
         if self.num_sem < 2:
@@ -103,3 +114,26 @@ class Grades:
         new_df['Subjects'] = df.groupby('Course')['Subject Code'].count().reset_index()['Subject Code']
         return new_df[new_df['Subjects'] >= 2]
         
+    def completed_units(self):
+        df = self.df
+        df['Units'] = pd.to_numeric(df['Units'], errors='coerce')
+        return df['Units'].sum()
+    
+    def completed_units_delta(self):
+        df = self.df
+        df = df[df['Semester'] == self.last_sem].copy()
+        df['Units'] = pd.to_numeric(df['Units'], errors='coerce')
+        return df['Units'].sum()
+    
+    def check_highest_possible(self, remaining_units, honor):
+        df = self.df
+        df['Units'] = pd.to_numeric(df['Units'], errors='coerce')
+
+        total_weighted = df['Weighted Grade'].sum() + (4 * remaining_units)
+        total_units = df['Units'].sum() + remaining_units
+        highest_possible = round(total_weighted / total_units, 2)
+        
+        return highest_possible
+
+    def check_minimum_eligibility(self, remaining_units, honor):
+        pass

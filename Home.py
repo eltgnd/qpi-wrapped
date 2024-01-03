@@ -1,9 +1,14 @@
+# Packages
 import time
 import streamlit as st
 import plotly.express as px
 import pandas as pd
-from grades import Grades
+
+# Imported files
+from grades import Grades, honors_dict
 from streamlit_extras.add_vertical_space import add_vertical_space
+from sample_data import sample_data
+from gauge import plot_gauge
 
 # Variables
 grades_color_map = {
@@ -28,8 +33,12 @@ def form_callable():
     except:
         st.write('Error!')
 
+# Logo
+def logo():
+    st.title('Hi')
+
 # Header
-st.title('🧮 QPI Wrapped')
+st.title('🦅📘 QPI Wrapped')
 add_vertical_space(1)
 st.write('Inspired by CompSAt\'s QPI Calculator, QPI Wrapped calculates your QPI and visualizes your grades for fun! To get started, input your grades from AISIS. **Disclaimer: Your data is not saved.**')
 
@@ -50,14 +59,30 @@ with st.expander('See how to copy paste grades', expanded=False):
 # with open('sample_data.txt', 'r') as file:
 #     s = file.read()
 
-# Form
-with st.form(key='form'):
-    user_input = st.text_area('Input your grades from AISIS', key='str')
-    submit = st.form_submit_button(label='Submit')
+if 'submitted' not in st.session_state:
+    st.session_state.submitted = False
 
+# Form
+with st.container(border=True):
+    user_input = st.text_area('Input your grades from AISIS', 
+        placeholder=sample_data,
+        disabled=st.session_state.submitted,
+        key='str'
+    )
+    col1, col2 = st.columns([0.5,3.5], gap='small')
+    with col1:
+        submit = st.button(label='Submit', type='primary')
+    with col2:
+        sample = st.button(label='Try sample data')
+
+if sample:
+    if 'data' not in st.session_state:
+        st.session_state.data = sample_data
+        st.session_state.submitted = True
 if submit:
     if 'data' not in st.session_state:
         st.session_state.data = user_input
+        st.session_state.submitted = True
 
 try:
     s = st.session_state.data
@@ -70,20 +95,22 @@ try:
         with st.spinner('Analyzing your grades...'):
             time.sleep(3)
         st.toast('Done analyzing!', icon='🥳')
-        st.balloons()
 
     # Table
     with st.expander('View Table', expanded=False):
         st.dataframe(grades.df, hide_index=True, use_container_width=True)
 
-    # with st.sidebar:
-    #     st.write('hi')
-    #     # add search function for grade summary of specific coursecode (e.g. MATH)
-    #     # add magna summa tool thingy
-    #     # change color
-    #     # 
+    with st.sidebar:
 
+        logo()
+    # add input for choosing subject summary or sumn
+    # correlation between # of units and QPI
 
+        # Latin honors
+        st.write('**🤔 Latin Honor Eligibility**')
+        st.number_input('Computable units left?', step=1, min_value=0, help='Computable units refer to units used in computing your cumulative QPI (e.g. PE is not included)', key='remaining_units')
+        st.radio('Check eligibility', honors_dict.keys(), key='check_eligibility')
+    
 
     add_vertical_space(1)
 
@@ -113,7 +140,7 @@ try:
             markers=True,
             text='QPI',
             height=300)
-        fig.update_traces(textposition="bottom left")
+        fig.update_traces(textposition="top center")
         fig.update_layout(margin=dict(l=30, r=30, t=50, b=20))
         st.plotly_chart(fig, use_container_width=True)
 
@@ -128,7 +155,7 @@ try:
                 if 'curr_sem1' not in st.session_state:
                     st.session_state.curr_sem1 = False
                 fig = px.pie(grades.letter_frequency(st.session_state.curr_sem1), names='Final Grade', values='Subject Code',
-                    title='Letter Grade Frequency',
+                    title='Current Semester Letter Grade Frequency' if st.session_state.curr_sem1 else 'Cumulative Letter Grade Frequency',
                     height=380,
                     hole=0.6,
                     color='Final Grade',
@@ -145,7 +172,7 @@ try:
                 if 'curr_sem2' not in st.session_state:
                     st.session_state.curr_sem2 = False
                 fig = px.bar(grades.letter_frequency(st.session_state.curr_sem2), x='Final Grade', y='Subject Code',
-                    title='Letter Grade Frequency',
+                    title='Current Semester Letter Grade Frequency' if st.session_state.curr_sem2 else 'Cumulative Letter Grade Frequency',
                     height=380,
                     # color='group',
                     # color_discrete_map=grades_color_map
@@ -153,7 +180,9 @@ try:
                 fig.update_layout(legend=dict(
                     orientation='h',yanchor="top",y=0.9,xanchor="center",x=0.5),
                     margin=dict(l=20, r=20, t=50, b=0),
-                    title=dict(x=0, y=0.95)
+                    title=dict(x=0, y=0.95),
+                    xaxis_title='Letter Grade',
+                    yaxis_title='Frequency'
                 )
                 st.plotly_chart(fig, use_container_width=True)
                 st.toggle('Current Semester Only', key='curr_sem2')
@@ -175,6 +204,35 @@ try:
         with st.container(border=True):
             st.caption('**Disclaimer:** To avoid clutter, the radar chart above only includes courses with more than two subjects.')
     
+    add_vertical_space(1)
+
+    # Row 4
+    col1, col2, col3 = st.columns([0.2, 0.45, 0.35])
+    with col1:
+        with st.container(border=True):
+            st.metric(label='Completed Units', value=grades.completed_units(), delta=f'{grades.completed_units_delta()} units')
+        with st.container(border=True):
+            st.metric(label='Remaining Units', value=st.session_state.remaining_units)
+    with col2:
+        with st.container(border=True):
+            total = grades.completed_units() + st.session_state.remaining_units
+            plot_gauge(grades.completed_units(), '#00BFFF', f'%', 'IPS Progress', total)            
+    with col3:
+        with st.container(border=True):
+            honor = st.session_state.check_eligibility
+            highest_possible = grades.check_highest_possible(st.session_state.remaining_units, honor)
+            eligibility_text = 'Possible 🥳' if highest_possible >= honors_dict[honor][0] else 'Impossible'
+
+            st.metric(label=f'{st.session_state.check_eligibility} is...', value=eligibility_text)
+
+            st.write(f'Highest attainable QPI: {highest_possible}\nHonor range: {honors_dict[honor][0]}-{honors_dict[honor][-1]}')
+            st.caption("Highest attainable QPI assumes an 'A' in all remaining courses.")
+
+    # Row 5
+    with st.container(border=True):
+        # units and qpi comparison
+        pass
+
     # Features list
     with st.expander('Features to implement soon', expanded=False):
         st.write('''
@@ -186,3 +244,4 @@ try:
         ''')
 except Exception as e:
     st.info('Waiting for input... 😴')
+    st.write(e)
