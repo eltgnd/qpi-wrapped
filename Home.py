@@ -226,7 +226,7 @@ try:
             st.metric(label=f'{st.session_state.check_eligibility} is...', value=eligibility_text)
 
             st.write(f'Highest attainable QPI: {highest_possible}\nHonor range: {honors_dict[honor][0]}-{honors_dict[honor][-1]}')
-            st.caption("Highest attainable QPI assumes an 'A' in all remaining courses.")
+            st.caption("Highest attainable QPI assumes an **'A'** in all remaining courses.")
 
     # Row 5
     with st.container(border=True):
@@ -237,9 +237,8 @@ try:
     with st.expander('Features to implement soon', expanded=False):
         st.write('''
             1. Editable table
-            2. Target cumulative QPI calculator
-            3. Search function
-            4. More insightful charts
+            3. Search function for course code summary
+            4. Does unit count affect QPI?
         
         ''')
 except Exception as e:
