@@ -5,11 +5,16 @@ import pandas as pd
 from grades import Grades
 from streamlit_extras.add_vertical_space import add_vertical_space
 
-# Settings
-# st.set_page_config(layout='wide')
-
 # Variables
-
+grades_color_map = {
+    'A': '#4169E1',  # Royal Blue
+    'B+': '#00BFFF', # Deep Sky Blue
+    'B': '#87CEEB',  # Sky Blue
+    'C+': '#FFD700', # Gold
+    'C': '#FFA500',  # Orange
+    'D': '#FF6347',  # Tomato
+    'F': '#FF0000',  # Red
+}
 
 # Functions
 def error(message):
@@ -22,7 +27,6 @@ def form_callable():
         session_state.original_data = df
     except:
         st.write('Error!')
-
 
 # Header
 st.title('🧮 QPI Wrapped')
@@ -60,10 +64,13 @@ try:
     grades = Grades(s)
 
     # Wait
-    add_vertical_space(1)
-    with st.spinner('Analyzing your grades...'):
-        time.sleep(3)
-    st.toast('Done analyzing!', icon='🥳')
+    if 'waited' not in st.session_state:
+        st.session_state.waited = True  
+        add_vertical_space(1)
+        with st.spinner('Analyzing your grades...'):
+            time.sleep(3)
+        st.toast('Done analyzing!', icon='🥳')
+        st.balloons()
 
     # Table
     with st.expander('View Table', expanded=False):
@@ -76,7 +83,7 @@ try:
     #     # change color
     #     # 
 
-    # Wait
+
 
     add_vertical_space(1)
 
@@ -122,7 +129,10 @@ try:
                     st.session_state.curr_sem1 = False
                 fig = px.pie(grades.letter_frequency(st.session_state.curr_sem1), names='Final Grade', values='Subject Code',
                     title='Letter Grade Frequency',
-                    height=380
+                    height=380,
+                    hole=0.6,
+                    color='Final Grade',
+                    color_discrete_map=grades_color_map
                 )
                 fig.update_layout(legend=dict(
                     orientation='h',yanchor="top",y=0.1,xanchor="center",x=0.5),
@@ -136,7 +146,9 @@ try:
                     st.session_state.curr_sem2 = False
                 fig = px.bar(grades.letter_frequency(st.session_state.curr_sem2), x='Final Grade', y='Subject Code',
                     title='Letter Grade Frequency',
-                    height=380
+                    height=380,
+                    # color='group',
+                    # color_discrete_map=grades_color_map
                 )
                 fig.update_layout(legend=dict(
                     orientation='h',yanchor="top",y=0.9,xanchor="center",x=0.5),
@@ -172,5 +184,5 @@ try:
             4. More insightful charts
         
         ''')
-except:
+except Exception as e:
     st.info('Waiting for input... 😴')
