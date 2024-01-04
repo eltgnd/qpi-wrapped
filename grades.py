@@ -90,9 +90,9 @@ class Grades:
         else:
             return 'First Honors'
     
-    def qpi_by_semester(self,choice):
+    def qpi_by_semester(self,exclude_intersession):
         semesters = self.df['Semester'].unique()
-        if choice:
+        if exclude_intersession:
             semesters = [sem for sem in semesters if sem[-1] != '0']
         qpi_lst = []
         for s in semesters:
@@ -141,3 +141,9 @@ class Grades:
         df = self.df
         filtered_df = df.query('Course in @courses')
         return filtered_df
+
+    def qpi_vs_units(self):
+        df = self.df
+        qpi_sem_df = self.qpi_by_semester(exclude_intersession=True)
+        grouped_df = df.groupby('Semester')['Units'].sum().reset_index()
+        return pd.merge(qpi_sem_df, grouped_df, on='Semester')

@@ -3,6 +3,8 @@ import time
 import streamlit as st
 import plotly.express as px
 import pandas as pd
+import numpy as np
+import plotly.graph_objects as go
 
 # Imported files
 from grades import Grades, honors_dict
@@ -19,6 +21,13 @@ grades_color_map = {
     'C': '#FFA500',  # Orange
     'D': '#FF6347',  # Tomato
     'F': '#FF0000',  # Red
+}
+correlation_scales = {
+    '-Very Weak': (0.0, 0.19),
+    '-Weak': (0.2, 0.39),
+    'Moderate': (0.4, 0.59),
+    '+Strong': (0.6, 0.79),
+    '+Very Strong': (0.8, 1.0)
 }
 
 # Functions
@@ -38,6 +47,7 @@ def logo():
     st.title('Hi')
 
 # Header
+st.sidebar.write('')
 st.title('🦅📘 QPI Wrapped')
 add_vertical_space(1)
 st.write('Inspired by CompSAt\'s QPI Calculator, QPI Wrapped calculates your QPI and visualizes your grades for fun! To get started, input your grades from AISIS. **Disclaimer: Your data is not saved.**')
@@ -118,8 +128,14 @@ try:
             with st.expander('View selected courses'):
                 st.dataframe(grades.analyze_courses(st.session_state.courses)[['Subject Code', 'Units', 'Final Grade']], hide_index=True)
 
-        # Correlation
+        st.divider()
 
+        # About
+        st.caption('Developed by Val Eltagonde. @eltgnd_v')
+        st.markdown("""<a href="https://www.linkedin.com/in/val-eltagonde-8b6282141/">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/LinkedIn_icon.svg/2048px-LinkedIn_icon.svg.png" alt="Alt Text" width="25" height="25">
+</a>""", unsafe_allow_html=True)
+    
     add_vertical_space(1)
 
     # Row 1
@@ -284,16 +300,70 @@ try:
     with st.container(border=True):
         st.radio('**Fun Question**: Based only on your data, does your QPI correlate with the number of units you take?', [ 'I\'m not sure 😴', 'I think yes 👍', 'I don\'t think so 🥱'])
         find_out = st.button('I want to find out')
-        # units and qpi comparison
+    find_out=True
+    if find_out:
+        col1, col2 = st.columns([0.8,0.2])
+        with col1:
+            with st.container(border=True):
+                df = grades.qpi_vs_units()
 
-    # # Features list
-    # with st.expander('Features to implement soon', expanded=False):
-    #     st.write('''
-    #         1. Editable table
-    #         3. Search function for course code summary
-    #         4. Does unit count affect QPI?
-        
-    #     ''')
+                fig = go.Figure(layout_title_text="QPI vs Units")
+                fig.add_trace(go.Scatter(x=df.Units, y=df.QPI, 
+                    name='QPI vs Units',
+                    text=df.QPI,
+                    mode='markers+text',
+                    marker=dict(color='skyblue', size=10)
+                    )
+                )
+
+                # fig = px.line(df, x='Units', y='QPI',
+                #     color='Semester',
+                #     title='QPI vs Units',
+                #     text='QPI',
+                #     height=350,
+                #     trendline="ols", trendline_scope="overall"
+                # )
+
+                # Linear regression
+                model = np.polyfit(df.Units, df.QPI, 1)
+                mn, mx = df.Units.min(), df.Units.max()
+                x_line = [i for i in range(mn,mx+1,1)]
+                y_line = [(model[0]*x + model[1]) for x in x_line]
+
+                fig.add_trace(go.Scatter(x=x_line, y=y_line,
+                    name='Best fit line',
+                    line=dict(color='skyblue', width=1, dash='dot'),
+                    mode='lines'
+                    )
+                )
+
+                fig.update_traces(textposition="top center")
+                fig.update_layout(legend=dict(
+                    orientation='h',yanchor="top",y=-0.35,xanchor="left",x=-0.1), 
+                    margin=dict(l=30, r=30, t=60, b=20),
+                    height=300
+                )
+
+                st.plotly_chart(fig, use_container_width=True)
+
+        with col2:
+            with st.container(border=True):
+                corr = abs(round(df['Units'].corr(df['QPI'], method='pearson'),2))
+                label = ''
+                for val, scale in correlation_scales.items():
+                    if scale[0] <= corr <= scale[1]:
+                        label = val
+                        break
+                st.metric(label='Correlation\n\ncoefficient (r)', value=corr, delta=label, delta_color='normal' if val != 'Moderate' else 'off')
+            with st.container(border=True):
+                st.write(f'What does *r* ({corr}) mean?')
+                st.caption("r quantifies the strength of a linear relationship.")
 except Exception as e:
     st.info('Waiting for input... 😴')
     st.write(e)
+
+
+# add bridging courses
+# toast when same guess with correlation coefficient
+# add feedback form
+# add one more chart in 'Fun questiom' -- divide into 2 columns
