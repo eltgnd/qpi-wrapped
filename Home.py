@@ -27,7 +27,7 @@ correlation_scales = {
     '-Weak': (0.2, 0.39),
     'Moderate': (0.4, 0.59),
     '+Strong': (0.6, 0.79),
-    '+Very Strong': (0.8, 1.0)
+    '+Very High': (0.8, 1.0)
 }
 
 # Functions
@@ -112,6 +112,8 @@ try:
 
     # Sidebar
     with st.sidebar:
+        st.divider()
+
         # Latin honors
         st.write('**🤔 Latin Honor Eligibility**')
         st.number_input('How many are your computable units left?', step=1, min_value=0, help='Computable units refer to units used in computing your cumulative QPI (e.g. PE is not included)', key='remaining_units')
@@ -132,9 +134,15 @@ try:
 
         # About
         st.caption('Developed by Val Eltagonde. @eltgnd_v')
-        st.markdown("""<a href="https://www.linkedin.com/in/val-eltagonde-8b6282141/">
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/LinkedIn_icon.svg/2048px-LinkedIn_icon.svg.png" alt="Alt Text" width="25" height="25">
-</a>""", unsafe_allow_html=True)
+        col1, col2 = st.columns([0.05,0.45])
+        with col1:
+            st.markdown("""<a href="https://www.linkedin.com/in/val-eltagonde-8b6282141/">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/LinkedIn_icon.svg/2048px-LinkedIn_icon.svg.png" 
+                width="25" height="25"></a>""", unsafe_allow_html=True)
+        with col2:
+            st.markdown("""<a href="https://www.instagram.com/eltgnd_v/">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Instagram_logo_2016.svg/2048px-Instagram_logo_2016.svg.png" 
+                width="25" height="25"></a>""", unsafe_allow_html=True)
     
     add_vertical_space(1)
 
@@ -251,7 +259,7 @@ try:
 
                 st.metric(label=f'{st.session_state.check_eligibility} is...', value=eligibility_text)
 
-                st.write(f'Highest attainable QPI: {highest_possible}\nHonor range: {honors_dict[honor][0]}-{honors_dict[honor][-1]}')
+                st.write(f'Highest attainable QPI: {highest_possible}\nHonor range: {honors_dict[honor][0]} to {honors_dict[honor][-1]}')
                 st.caption("Highest attainable QPI assumes an **'A'** in all remaining courses.")
 
         # Row 5
@@ -266,13 +274,13 @@ try:
                 with st.container(border=True):
                     ratio = st.session_state.ratio
                     st.caption('Your estimation')
-                    summary = (f'{100-ratio}% **A***s* and {ratio}% **B***s*')
+                    summary = (f'{100-ratio}% A and {ratio}% B+')
                     st.markdown(f'''<span style="  font-size:22px ; font-weight:light ; ">{summary}</span>''', unsafe_allow_html=True)
             with col3:
                 with st.container(border=True):  
                     honor = st.session_state.check_eligibility
                     highest_possible = grades.check_highest_possible(st.session_state.remaining_units, honor, st.session_state.ratio)
-                    eligibility_text = 'possible 🥳' if highest_possible >= honors_dict[honor][0] else 'impossible.' 
+                    eligibility_text = 'possible 👍' if highest_possible >= honors_dict[honor][0] else 'impossible 😟' 
 
                     st.markdown(f'<span style=" font-size:22px ">{st.session_state.check_eligibility} is {eligibility_text}</span>', unsafe_allow_html=True)
                     st.caption(f'Highest attainable QPI: {highest_possible}')
@@ -297,10 +305,17 @@ try:
         add_vertical_space(1)
 
     # Row 7
-    with st.container(border=True):
-        st.radio('**Fun Question**: Based only on your data, does your QPI correlate with the number of units you take?', [ 'I\'m not sure 😴', 'I think yes 👍', 'I don\'t think so 🥱'])
-        find_out = st.button('I want to find out')
-    find_out=True
+    col1, col2 = st.columns([0.65,0.35])
+    with col1:
+        with st.container(border=True):
+            st.radio('**Fun Question**: Based only on your data, do you think your QPI correlates with the number of units you take each semester?', [ 'I\'m not sure 😴', 'I think yes 👍', 'I don\'t think so 🥱'])
+            add_vertical_space(1)
+            find_out = st.button('I want to find out')
+    with col2:
+        with st.container(border=True):      
+            st.metric(label='hi', value=5) # highest qpi and ilang units
+        with st.container(border=True):      
+            st.metric(label='hi', value=5) # highes units ilan qpi
     if find_out:
         col1, col2 = st.columns([0.8,0.2])
         with col1:
@@ -316,14 +331,6 @@ try:
                     )
                 )
 
-                # fig = px.line(df, x='Units', y='QPI',
-                #     color='Semester',
-                #     title='QPI vs Units',
-                #     text='QPI',
-                #     height=350,
-                #     trendline="ols", trendline_scope="overall"
-                # )
-
                 # Linear regression
                 model = np.polyfit(df.Units, df.QPI, 1)
                 mn, mx = df.Units.min(), df.Units.max()
@@ -336,16 +343,13 @@ try:
                     mode='lines'
                     )
                 )
-
                 fig.update_traces(textposition="top center")
                 fig.update_layout(legend=dict(
                     orientation='h',yanchor="top",y=-0.35,xanchor="left",x=-0.1), 
                     margin=dict(l=30, r=30, t=60, b=20),
                     height=300
                 )
-
                 st.plotly_chart(fig, use_container_width=True)
-
         with col2:
             with st.container(border=True):
                 corr = abs(round(df['Units'].corr(df['QPI'], method='pearson'),2))
@@ -357,13 +361,22 @@ try:
                 st.metric(label='Correlation\n\ncoefficient (r)', value=corr, delta=label, delta_color='normal' if val != 'Moderate' else 'off')
             with st.container(border=True):
                 st.write(f'What does *r* ({corr}) mean?')
-                st.caption("r quantifies the strength of a linear relationship.")
+                st.caption("r quantifies the strength of a linear relationship!")
+
 except Exception as e:
     st.info('Waiting for input... 😴')
     st.write(e)
 
 
-# add bridging courses
+
+# add one more chart in 'Fun questiom' -- divide into 2 columns (wip)
+
+# one time lang "I want to find out"
 # toast when same guess with correlation coefficient
+# best fit line button
+# remove + sign from metric delta
+
+# add bridging courses
 # add feedback form
-# add one more chart in 'Fun questiom' -- divide into 2 columns
+# update sample data
+# download results
