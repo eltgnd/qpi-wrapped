@@ -41,7 +41,7 @@ def logo():
 st.title('🦅📘 QPI Wrapped')
 add_vertical_space(1)
 st.write('Inspired by CompSAt\'s QPI Calculator, QPI Wrapped calculates your QPI and visualizes your grades for fun! To get started, input your grades from AISIS. **Disclaimer: Your data is not saved.**')
-
+add_vertical_space(1)
 # Tutorial
 with st.expander('See how to copy paste grades', expanded=False):
     st.write('''1. Visit AISIS and go to `MY GRADES`.
@@ -100,17 +100,25 @@ try:
     with st.expander('View Table', expanded=False):
         st.dataframe(grades.df, hide_index=True, use_container_width=True)
 
+    # Sidebar
     with st.sidebar:
-
-        logo()
-    # add input for choosing subject summary or sumn
-    # correlation between # of units and QPI
-
         # Latin honors
         st.write('**🤔 Latin Honor Eligibility**')
-        st.number_input('Computable units left?', step=1, min_value=0, help='Computable units refer to units used in computing your cumulative QPI (e.g. PE is not included)', key='remaining_units')
-        st.radio('Check eligibility', honors_dict.keys(), key='check_eligibility')
+        st.number_input('How many are your computable units left?', step=1, min_value=0, help='Computable units refer to units used in computing your cumulative QPI (e.g. PE is not included)', key='remaining_units')
+        if st.session_state.remaining_units != 0:
+            st.radio('Check eligibility', honors_dict.keys(), index=3, key='check_eligibility')
     
+        st.divider()
+
+        # Summarize course
+        qpi_temp = grades.compute_qpi(grades.df)
+        course_choices = grades.qpi_by_course(minimum_courses=1).sort_values(by='Subjects', ascending=False).reset_index()['Course']
+        st.multiselect('Analyze courses based on course code', options=course_choices, key='courses', placeholder=course_choices[0])
+        if st.session_state.courses:
+            with st.expander('View selected courses'):
+                st.dataframe(grades.analyze_courses(st.session_state.courses)[['Subject Code', 'Units', 'Final Grade']], hide_index=True)
+
+        # Correlation
 
     add_vertical_space(1)
 
@@ -206,41 +214,86 @@ try:
     
     add_vertical_space(1)
 
-    # Row 4
-    col1, col2, col3 = st.columns([0.2, 0.45, 0.35])
-    with col1:
-        with st.container(border=True):
-            st.metric(label='Completed Units', value=grades.completed_units(), delta=f'{grades.completed_units_delta()} units')
-        with st.container(border=True):
-            st.metric(label='Remaining Units', value=st.session_state.remaining_units)
-    with col2:
-        with st.container(border=True):
-            total = grades.completed_units() + st.session_state.remaining_units
-            plot_gauge(grades.completed_units(), '#00BFFF', f'%', 'IPS Progress', total)            
-    with col3:
-        with st.container(border=True):
-            honor = st.session_state.check_eligibility
-            highest_possible = grades.check_highest_possible(st.session_state.remaining_units, honor)
-            eligibility_text = 'Possible 🥳' if highest_possible >= honors_dict[honor][0] else 'Impossible'
+    if st.session_state.remaining_units:
+        # Row 4
+        col1, col2, col3 = st.columns([0.2, 0.45, 0.35])
+        with col1:
+            with st.container(border=True):
+                st.metric(label='Completed Units', value=grades.completed_units(), delta=f'{grades.completed_units_delta()} units')
+            with st.container(border=True):
+                st.metric(label='Remaining Units', value=st.session_state.remaining_units)
+        with col2:
+            with st.container(border=True):
+                total = grades.completed_units() + st.session_state.remaining_units
+                percent = round(grades.completed_units() * 100 / total,2)
+                plot_gauge(percent, '#00BFFF', f'%', 'IPS Progress in Percent', 100)            
+        with col3:
+            with st.container(border=True):
+                honor = st.session_state.check_eligibility
+                highest_possible = grades.check_highest_possible(st.session_state.remaining_units, honor, 0)
+                eligibility_text = 'Possible 🥳' if highest_possible >= honors_dict[honor][0] else 'Impossible' 
 
-            st.metric(label=f'{st.session_state.check_eligibility} is...', value=eligibility_text)
+                st.metric(label=f'{st.session_state.check_eligibility} is...', value=eligibility_text)
 
-            st.write(f'Highest attainable QPI: {highest_possible}\nHonor range: {honors_dict[honor][0]}-{honors_dict[honor][-1]}')
-            st.caption("Highest attainable QPI assumes an **'A'** in all remaining courses.")
+                st.write(f'Highest attainable QPI: {highest_possible}\nHonor range: {honors_dict[honor][0]}-{honors_dict[honor][-1]}')
+                st.caption("Highest attainable QPI assumes an **'A'** in all remaining courses.")
 
-    # Row 5
+        # Row 5
+        # mathematically, itis possible but for many of us, it is hard to get an A. Let's try to estimate your chances better
+        with st.expander('Realistically, it is hard to get *A*s on **all** remaining courses. Want to estimate your chances better?', expanded=False):
+            st.write(':grey[Let\'s assume all your remaining courses all weigh 3 units.]')
+            col1, col2, col3 = st.columns([0.4,0.2,0.3], gap='small')
+            with col1:
+                with st.container(border=True):
+                    st.slider('What percent of your remaining courses do you estimate to get B+ on?', min_value=0, max_value=100, step=10, format=f'%f%%', key='ratio')
+            with col2:
+                with st.container(border=True):
+                    ratio = st.session_state.ratio
+                    st.caption('Your estimation')
+                    summary = (f'{100-ratio}% **A***s* and {ratio}% **B***s*')
+                    st.markdown(f'''<span style="  font-size:22px ; font-weight:light ; ">{summary}</span>''', unsafe_allow_html=True)
+            with col3:
+                with st.container(border=True):  
+                    honor = st.session_state.check_eligibility
+                    highest_possible = grades.check_highest_possible(st.session_state.remaining_units, honor, st.session_state.ratio)
+                    eligibility_text = 'possible 🥳' if highest_possible >= honors_dict[honor][0] else 'impossible.' 
+
+                    st.markdown(f'<span style=" font-size:22px ">{st.session_state.check_eligibility} is {eligibility_text}</span>', unsafe_allow_html=True)
+                    st.caption(f'Highest attainable QPI: {highest_possible}')
+
+        add_vertical_space(1)
+
+    # Row 6
+    if st.session_state.courses:
+        with st.container(border=True):
+            df = grades.analyze_courses(st.session_state.courses).reset_index()
+            fig = px.bar(df, x='Subject Code', y='Numerical Grade',
+                color='Course',
+                category_orders={'Subject Code':df['Subject Code']},
+                title='Letter Grade by Specified Course Code',
+                text='Final Grade',
+                height=300,
+            )
+
+            fig.update_layout(margin=dict(l=30, r=30, t=50, b=20))
+            st.plotly_chart(fig, use_container_width=True)
+
+        add_vertical_space(1)
+
+    # Row 7
     with st.container(border=True):
+        st.radio('**Fun Question**: Based only on your data, does your QPI correlate with the number of units you take?', [ 'I\'m not sure 😴', 'I think yes 👍', 'I don\'t think so 🥱'])
+        find_out = st.button('I want to find out')
         # units and qpi comparison
-        pass
 
-    # Features list
-    with st.expander('Features to implement soon', expanded=False):
-        st.write('''
-            1. Editable table
-            3. Search function for course code summary
-            4. Does unit count affect QPI?
+    # # Features list
+    # with st.expander('Features to implement soon', expanded=False):
+    #     st.write('''
+    #         1. Editable table
+    #         3. Search function for course code summary
+    #         4. Does unit count affect QPI?
         
-        ''')
+    #     ''')
 except Exception as e:
     st.info('Waiting for input... 😴')
     st.write(e)

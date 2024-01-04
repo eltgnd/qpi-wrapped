@@ -106,13 +106,13 @@ class Grades:
             df = df[df['Semester'] == self.last_sem].copy()
         return df.groupby('Final Grade')['Subject Code'].count().reset_index()
 
-    def qpi_by_course(self):
+    def qpi_by_course(self, minimum_courses=2):
         df = self.df
         df['Units'] = pd.to_numeric(df['Units'], errors='coerce')
         df['Course'] = df['Subject Code'].str.split().str.get(0)
         new_df = df.groupby('Course').apply(lambda x: x['Weighted Grade'].sum() / x['Units'].sum()).reset_index()
         new_df['Subjects'] = df.groupby('Course')['Subject Code'].count().reset_index()['Subject Code']
-        return new_df[new_df['Subjects'] >= 2]
+        return new_df[new_df['Subjects'] >= minimum_courses]
         
     def completed_units(self):
         df = self.df
@@ -125,15 +125,19 @@ class Grades:
         df['Units'] = pd.to_numeric(df['Units'], errors='coerce')
         return df['Units'].sum()
     
-    def check_highest_possible(self, remaining_units, honor):
+    def check_highest_possible(self, remaining_units, honor, b_plus_percent):
         df = self.df
         df['Units'] = pd.to_numeric(df['Units'], errors='coerce')
+        b_plus_percent /= 100
+        a_percent = 1-b_plus_percent
 
-        total_weighted = df['Weighted Grade'].sum() + (4 * remaining_units)
+        total_weighted = df['Weighted Grade'].sum() + (4 * (a_percent*remaining_units)) + (3 * (b_plus_percent*remaining_units))
         total_units = df['Units'].sum() + remaining_units
         highest_possible = round(total_weighted / total_units, 2)
-        
+
         return highest_possible
 
-    def check_minimum_eligibility(self, remaining_units, honor):
-        pass
+    def analyze_courses(self, courses):
+        df = self.df
+        filtered_df = df.query('Course in @courses')
+        return filtered_df

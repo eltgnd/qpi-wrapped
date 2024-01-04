@@ -24,13 +24,12 @@ def plot_gauge(
             title={
                 "text": indicator_title,
                 "font": {"size": 26},
-                "align": "left",
             },
         )
     )
     fig.update_layout(
         # paper_bgcolor="lightgrey",
         height=198,
-        margin=dict(l=20, r=20, t=30, b=0),
+        margin=dict(l=25, r=25, t=50, b=0),
     )
     st.plotly_chart(fig, use_container_width=True)
