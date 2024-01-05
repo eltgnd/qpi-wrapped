@@ -409,7 +409,7 @@ try:
         survey.text_input('Reports on broken features, feedback, and suggestions would be really helpful! 💙', id='feedback')
         survey_button = st.button('Submit')
 
-        info_secrets, info_data = st.secrets['gcp_service_account']['info'], {}
+        info_secrets, info_data = st.secrets['gcp_service_account'], {}
         for k,v in info_secrets.items():
             info_data[k] = v
         info_data['private_key'] = f"-----BEGIN PRIVATE KEY-----\n{info_data['private_key'] }\n-----END PRIVATE KEY-----\n" # fixes the key error
@@ -437,4 +437,3 @@ try:
 except Exception as e:
     add_vertical_space(2)
     st.info('Waiting for input... 😴')
-    st.write(e)
