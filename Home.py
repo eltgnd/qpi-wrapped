@@ -41,7 +41,8 @@ def form_callable():
         session_state.original_data = df
     except:
         st.write('Error!')
-
+def find_out_button():
+    st.session_state.find_out = True
 # Logo
 def logo():
     st.title('Hi')
@@ -289,7 +290,10 @@ try:
 
     # Row 6
     if st.session_state.courses:
+        if 'show_qpi' not in st.session_state:
+            st.session_state.show_qpi = False
         with st.container(border=True):
+            qpi = (grades.analyze_courses_qpi(st.session_state.courses))
             df = grades.analyze_courses(st.session_state.courses).reset_index()
             fig = px.bar(df, x='Subject Code', y='Numerical Grade',
                 color='Course',
@@ -298,25 +302,44 @@ try:
                 text='Final Grade',
                 height=300,
             )
-
+            if st.session_state.show_qpi:
+                fig.add_hline(y=qpi, line_width=1, line_color='snow',
+                    line_dash="dot",
+                    annotation_text=f"Average Grade ({qpi})", 
+                    annotation_position="top right",
+                    annotation_font_size=13,
+                    annotation_font_color="snow"
+                )
             fig.update_layout(margin=dict(l=30, r=30, t=50, b=20))
             st.plotly_chart(fig, use_container_width=True)
 
+            st.toggle(f"Show Weighted Average (for {', '.join(st.session_state.courses)})', key='show_qpi")
+
         add_vertical_space(1)
+
 
     # Row 7
     col1, col2 = st.columns([0.65,0.35])
+    if 'find_out' not in st.session_state:
+        st.session_state.find_out = False
+
     with col1:
         with st.container(border=True):
-            st.radio('**Fun Question**: Based only on your data, do you think your QPI correlates with the number of units you take each semester?', [ 'I\'m not sure 😴', 'I think yes 👍', 'I don\'t think so 🥱'])
+            st.radio('**Fun Question**: Based only on your data, do you think your QPI correlates with the number of units you take each semester?', 
+                [ 'I\'m not sure 😴', 'I think yes 👍', 'I don\'t think so 🥱']
+            )
             add_vertical_space(1)
-            find_out = st.button('I want to find out')
+            find_out = st.button('I want to find out', on_click=find_out_button)
     with col2:
         with st.container(border=True):      
-            st.metric(label='hi', value=5) # highest qpi and ilang units
-        with st.container(border=True):      
-            st.metric(label='hi', value=5) # highes units ilan qpi
-    if find_out:
+            highest_qpi = grades.qpi_by_semester(True).sort_values(by='QPI', ascending=False).iloc[0]
+            st.metric(label=f'Highest QPI *({highest_qpi.Semester})*', value=f'{highest_qpi.QPI}🪴')
+        with st.container(border=True):     
+            highest_units = grades.group_by_units().sort_values(by='Units', ascending=False).iloc[0]
+            st.metric(label=f'Highest Units taken *({highest_units.Semester})*', value=f'{highest_units.Units} units')
+
+
+    if st.session_state.find_out:
         col1, col2 = st.columns([0.8,0.2])
         with col1:
             with st.container(border=True):
@@ -368,10 +391,6 @@ except Exception as e:
     st.write(e)
 
 
-
-# add one more chart in 'Fun questiom' -- divide into 2 columns (wip)
-
-# one time lang "I want to find out"
 # toast when same guess with correlation coefficient
 # best fit line button
 # remove + sign from metric delta

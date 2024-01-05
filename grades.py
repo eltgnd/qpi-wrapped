@@ -142,8 +142,17 @@ class Grades:
         filtered_df = df.query('Course in @courses')
         return filtered_df
 
+    def analyze_courses_qpi(self, courses):
+        df = self.analyze_courses(courses)
+        qpi = round(df['Weighted Grade'].sum() / df['Units'].sum(), 2)
+        return qpi
+
     def qpi_vs_units(self):
         df = self.df
         qpi_sem_df = self.qpi_by_semester(exclude_intersession=True)
         grouped_df = df.groupby('Semester')['Units'].sum().reset_index()
         return pd.merge(qpi_sem_df, grouped_df, on='Semester')
+
+    def group_by_units(self):
+        df = self.df
+        return self.df.groupby('Semester')['Units'].sum().reset_index()
