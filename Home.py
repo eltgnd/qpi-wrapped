@@ -78,7 +78,7 @@ if 'submitted' not in st.session_state:
 # Form
 with st.container(border=True):
     user_input = st.text_area('Input your grades from AISIS.', 
-        placeholder='Refresh this page if you cannot input your text!',
+        placeholder='Refresh this page if you can\'t input your text!',
         disabled=st.session_state.submitted,
         key='str'
     )
@@ -129,7 +129,7 @@ try:
         # Summarize course
         qpi_temp = grades.compute_qpi(grades.df)
         course_choices = grades.qpi_by_course(minimum_courses=1).sort_values(by='Subjects', ascending=False).reset_index()['Course']
-        st.multiselect('Analyze courses based on course code', options=course_choices, key='courses', placeholder=course_choices[0])
+        st.multiselect('Analyze courses based on course code/s', options=course_choices, key='courses', placeholder=course_choices[0])
         if st.session_state.courses:
             with st.expander('View selected courses'):
                 st.dataframe(grades.analyze_courses(st.session_state.courses)[['Subject Code', 'Units', 'Final Grade']], hide_index=True)
