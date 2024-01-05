@@ -105,7 +105,7 @@ try:
     if 'waited' not in st.session_state:
         st.session_state.waited = True  
         add_vertical_space(1)
-        with st.spinner('Analyzing your grades...'):
+        with st.spinner('Analyzing data...'):
             time.sleep(3)
         st.toast('Done analyzing!', icon='🥳')
 
@@ -329,7 +329,7 @@ try:
     with col1:
         with st.container(border=True):
             guess_options = [ 'I\'m not sure 😴', 'I think yes 👍', 'I don\'t think so 🥱']
-            st.radio('**Fun Question**: Based only on your data, do you think your QPI correlates with the number of units you take each semester?', 
+            st.radio('**Fun Question**: Based only on this data, do you think your QPI correlates with the number of units you take each semester?', 
                 guess_options, key='guess'
             )
             add_vertical_space(1)
