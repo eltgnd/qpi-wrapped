@@ -78,7 +78,7 @@ if 'submitted' not in st.session_state:
 # Form
 with st.container(border=True):
     user_input = st.text_area('Input your grades from AISIS', 
-        placeholder=sample_data,
+        # placeholder=sample_data,
         disabled=st.session_state.submitted,
         key='str'
     )
