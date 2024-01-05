@@ -5,6 +5,7 @@ import plotly.express as px
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
+import streamlit_survey as ss
 
 # Imported files
 from grades import Grades, honors_dict
@@ -26,8 +27,8 @@ correlation_scales = {
     '-Very Weak': (0.0, 0.19),
     '-Weak': (0.2, 0.39),
     'Moderate': (0.4, 0.59),
-    '+Strong': (0.6, 0.79),
-    '+Very High': (0.8, 1.0)
+    'Strong': (0.6, 0.79),
+    'Very High': (0.8, 1.0)
 }
 
 # Functions
@@ -113,7 +114,8 @@ try:
 
     # Sidebar
     with st.sidebar:
-        st.divider()
+        st.caption('MORE TOOLS')
+        add_vertical_space(1)
 
         # Latin honors
         st.write('**🤔 Latin Honor Eligibility**')
@@ -325,8 +327,9 @@ try:
 
     with col1:
         with st.container(border=True):
+            guess_options = [ 'I\'m not sure 😴', 'I think yes 👍', 'I don\'t think so 🥱']
             st.radio('**Fun Question**: Based only on your data, do you think your QPI correlates with the number of units you take each semester?', 
-                [ 'I\'m not sure 😴', 'I think yes 👍', 'I don\'t think so 🥱']
+                guess_options, key='guess'
             )
             add_vertical_space(1)
             find_out = st.button('I want to find out', on_click=find_out_button)
@@ -385,17 +388,32 @@ try:
             with st.container(border=True):
                 st.write(f'What does *r* ({corr}) mean?')
                 st.caption("r quantifies the strength of a linear relationship!")
+            if corr >= correlation_scales['Strong'][0]:
+                correct_guess = guess_options[1]
+            elif corr <= correlation_scales['-Weak'][-1]:
+                correct_guess = guess_options[2]
+            else:
+                correct_guess = 0
+            if st.session_state.guess != guess_options[0]:
+                text = 'right' if st.session_state.guess == correct_guess else 'wrong'
+                st.toast(f"You got the fun question {text}!", icon='😳')
+
+    # Submit feedback
+    st.divider()
+    add_vertical_space(1)
+    st.caption('Help me make QPI Wrapped better! ')
+    with st.container(border=True):
+        survey = ss.StreamlitSurvey()
+        survey.text_input('Reports on broken features, feedback, and suggestions would be cool! 😎', id='feedback')
+        survey_button = st.button('Submit')
+        if survey_button:
+            file1 = open('survey_responses.txt', 'a')
+            file1.write(survey.data['feedback']['value'] + '\n\n')
+            st.toast('Thanks for your feedback!', icon='🥳')
+            file1.close()
 
 except Exception as e:
     st.info('Waiting for input... 😴')
-    st.write(e)
 
-
-# toast when same guess with correlation coefficient
-# best fit line button
-# remove + sign from metric delta
-
-# add bridging courses
-# add feedback form
 # update sample data
-# download results
+# double check correctness

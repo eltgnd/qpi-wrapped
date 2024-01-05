@@ -1,5 +1,6 @@
 import pandas as pd
 
+not_part_of_qpi = ['PHYED', 'NSTP', 'MATH 1.1', 'MATH 1.2', 'ENGL 9', 'ENGL 10', 'ENGL 10.1', 'FILI 10']
 letters = {'A':4.00, 'B+':3.50, 'B':3.00, 'C+':2.50, 'C':2.00, 'D':1.00, 'F':0.00, 'W':0.00}
 honors_dict = {
     "Summa Cum Laude": [3.87, 4.00],
@@ -12,7 +13,6 @@ def correct_format(grade):
     return True
 def get_table(s, part_of_qpi_only=True):
     columns = 'School Year	Sem	Course	Subject Code	Course Title	Units	Final Grade'.split('	')
-
     grades = s.split('\n')
     grades = grades[1:] if grades[0][:6] == 'School' else grades
 
@@ -29,10 +29,11 @@ def get_table(s, part_of_qpi_only=True):
 def part_of_qpi(grade):
     d = grade.split('	')
 
-    subj_conditions = ['PHYED', 'NSTP']
-    for s in subj_conditions:
+    for s in not_part_of_qpi:
         l = len(s)
         if d[3][:l] == s:
+            return False
+        if d[3] == s:
             return False
 
     grade_conditions = ['WP', 'S']
