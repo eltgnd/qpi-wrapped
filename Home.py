@@ -378,16 +378,17 @@ try:
                 st.plotly_chart(fig, use_container_width=True)
         with col2:
             with st.container(border=True):
+                orig_corr = round(df['Units'].corr(df['QPI'], method='pearson'),2)
                 corr = abs(round(df['Units'].corr(df['QPI'], method='pearson'),2))
                 label = ''
                 for val, scale in correlation_scales.items():
                     if scale[0] <= corr <= scale[1]:
                         label = val
                         break
-                st.metric(label='Correlation\n\ncoefficient (r)', value=corr, delta=label, delta_color='normal' if val != 'Moderate' else 'off')
+                st.metric(label='Correlation\n\ncoefficient (r)', value=orig_corr, delta=label, delta_color='normal' if val != 'Moderate' else 'off')
             with st.container(border=True):
-                st.write(f'What does *r* ({corr}) mean?')
-                st.caption("r quantifies the strength of a linear relationship!")
+                st.write(f'What does *r* ({orig_corr}) mean?')
+                st.caption("r quantifies the linear strength from -1 (inverse) to 1 (direct).")
             if corr >= correlation_scales['Strong'][0]:
                 correct_guess = guess_options[1]
             elif corr <= correlation_scales['-Weak'][-1]:
@@ -414,6 +415,3 @@ try:
 
 except Exception as e:
     st.info('Waiting for input... 😴')
-
-# update sample data
-# double check correctness
