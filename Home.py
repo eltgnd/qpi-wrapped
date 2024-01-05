@@ -237,7 +237,7 @@ try:
             st.plotly_chart(fig, use_container_width=True)
 
         with st.container(border=True):
-            st.caption('**Disclaimer:** To avoid clutter, the radar chart above only includes courses with more than two subjects.')
+            st.caption('**Disclaimer:** To avoid clutter, the radar chart above only includes courses with more than one subject.')
     
     add_vertical_space(1)
 
@@ -408,10 +408,11 @@ try:
         survey.text_input('Reports on broken features, feedback, and suggestions would be cool! 😎', id='feedback')
         survey_button = st.button('Submit')
         if survey_button:
-            file1 = open('survey_responses.txt', 'a')
+            file1 = open('.survey_responses/survey_responses.txt', 'a')
             file1.write(survey.data['feedback']['value'] + '\n\n')
             st.toast('Thanks for your feedback!', icon='🥳')
             file1.close()
 
 except Exception as e:
+    add_vertical_space(2)
     st.info('Waiting for input... 😴')
