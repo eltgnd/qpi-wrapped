@@ -1,4 +1,5 @@
 streamlit
 streamlit-extras
+streamlit-survey
 pandas
 plotly
