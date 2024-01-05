@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 import streamlit_survey as ss
+from shillelagh.backends.apsw.db import connect
 
 # Imported files
 from grades import Grades, honors_dict
@@ -405,14 +406,35 @@ try:
     st.caption('Help me make QPI Wrapped better! ')
     with st.container(border=True):
         survey = ss.StreamlitSurvey()
-        survey.text_input('Reports on broken features, feedback, and suggestions would be cool! 😎', id='feedback')
+        survey.text_input('Reports on broken features, feedback, and suggestions would be really helpful! 💙', id='feedback')
         survey_button = st.button('Submit')
-        if survey_button:
-            file1 = open('.survey_responses/survey_responses.txt', 'a')
-            file1.write(survey.data['feedback']['value'] + '\n\n')
-            st.toast('Thanks for your feedback!', icon='🥳')
-            file1.close()
+
+        info_secrets, info_data = st.secrets['gcp_service_account']['info'], {}
+        for k,v in info_secrets.items():
+            info_data[k] = v
+        info_data['private_key'] = f"-----BEGIN PRIVATE KEY-----\n{info_data['private_key'] }\n-----END PRIVATE KEY-----\n" # fixes the key error
+        feedback = survey.data['feedback']['value']
+
+        if survey_button and feedback != '':
+            # Add to Google Sheet
+            with st.spinner('Sending feedback...'):
+                connection = connect(":memory:",
+                        adapter_kwargs = {
+                                "gsheetsapi": { 
+                                "service_account_info":  info_data
+                                        }
+                                            }
+                            )
+                insert = f"""
+                        INSERT INTO "{st.secrets["private_gsheets_url"]}" (Responses)
+                        VALUES ("{feedback}")
+                        """
+                connection.execute(insert)
+
+            st.balloons()
+            st.toast('Feedback recorded!', icon='📝')
 
 except Exception as e:
     add_vertical_space(2)
     st.info('Waiting for input... 😴')
+    st.write(e)

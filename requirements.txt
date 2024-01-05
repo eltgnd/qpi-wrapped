@@ -3,3 +3,5 @@ streamlit-extras
 streamlit-survey
 pandas
 plotly
+shillelagh
+google-auth
