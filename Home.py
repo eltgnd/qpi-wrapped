@@ -56,7 +56,7 @@ st.set_page_config(page_title='Your QPI Wrapped', page_icon='📘', layout="cent
 st.sidebar.write('')
 st.title('🦅📘 QPI Wrapped')
 add_vertical_space(1)
-st.write('Inspired by CompSAt\'s QPI Calculator, QPI Wrapped calculates your QPI and visualizes your grades for fun! To get started, input your grades from AISIS. **Disclaimer: Your data is not saved.**')
+st.write('Inspired by CompSAt\'s QPI Calculator, QPI Wrapped calculates your QPI and visualizes your grades for fun! To get started, input your grades from AISIS. **Privacy Notice: Your data is never saved.**')
 add_vertical_space(1)
 # Tutorial
 with st.expander('See how to copy paste grades', expanded=False):
@@ -108,7 +108,7 @@ try:
     if 'waited' not in st.session_state:
         st.session_state.waited = True  
         add_vertical_space(1)
-        with st.spinner('Analyzing data...'):
+        with st.spinner('Analyzing your data...'):
             time.sleep(3)
         st.toast('Done analyzing!', icon='🥳')
 
@@ -406,7 +406,7 @@ try:
     # Submit feedback
     st.divider()
     add_vertical_space(1)
-    st.caption('Help me make QPI Wrapped better! ')
+    st.caption('Help me make QPI Wrapped better! (This data will be recorded)')
     with st.container(border=True):
         survey = ss.StreamlitSurvey()
         survey.text_input('Reports on broken features, feedback, and suggestions would be really helpful! 💙', id='feedback')
@@ -420,7 +420,7 @@ try:
 
         if survey_button and feedback != '':
             # Add to Google Sheet
-            with st.spinner('Sending feedback...'):
+            with st.spinner('Recording feedback...'):
                 connection = connect(":memory:",
                         adapter_kwargs = {
                                 "gsheetsapi": { 
