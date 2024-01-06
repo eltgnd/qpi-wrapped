@@ -50,7 +50,7 @@ def logo():
     st.title('Hi')
 
 # Initialize
-st.set_page_config(page_title='Your QPI Wrapped', page_icon='📘', layout="centered", initial_sidebar_state="expanded", menu_items=None)
+st.set_page_config(page_title='Your QPI Wrapped', page_icon='📘', layout="centered", initial_sidebar_state="auto", menu_items=None)
 
 # Header
 st.sidebar.write('')
