@@ -1,4 +1,4 @@
-"# QPI Wrapped" 
+# QPI Wrapped
 QPI Wrapped is an interactive web-application that creates a beautiful dashboard for grades of Ateneo de Manila Univesity students.
 Made in Streamlit.
 
