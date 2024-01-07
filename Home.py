@@ -477,9 +477,9 @@ try:
             st.toast('Feedback recorded!', icon='📝')
 
     # Announcement
-    add_vertical_space(2)
+    add_vertical_space(1)
     with st.expander('What\'s next? 👀', expanded=False):
-        st.write('Support for other universities\' is coming soon!')
+        st.write('Support for other universities\' grades is coming soon!')
 
 except Exception as e:
     add_vertical_space(2)
