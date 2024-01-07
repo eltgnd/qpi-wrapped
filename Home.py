@@ -478,7 +478,7 @@ try:
 
         # Announcement
         add_vertical_space(2)
-        with st.expander('What\'s next? 👀' expanded=False):
+        with st.expander('What\'s next? 👀', expanded=False):
             st.write('Support for other universities\' is coming soon!')
 
 except Exception as e:
