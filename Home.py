@@ -56,7 +56,7 @@ st.set_page_config(page_title='Your QPI Wrapped', page_icon='📘', layout="cent
 st.sidebar.write('')
 st.title('🦅📘 QPI Wrapped')
 add_vertical_space(1)
-st.write('Inspired by CompSAt\'s QPI Calculator, QPI Wrapped calculates your QPI and visualizes your grades for fun! To get started, input your grades from AISIS. **Privacy Notice: Your data is never saved.**')
+st.write('Inspired by CompSAt\'s QPI Calculator, QPI Wrapped calculates your QPI and visualizes your grades for fun! To get started, input your grades from AISIS. :blue[**Privacy Notice: Your data is never saved.**]')
 add_vertical_space(1)
 # Tutorial
 with st.expander('See how to copy paste grades', expanded=False):
@@ -246,52 +246,92 @@ try:
     add_vertical_space(1)
 
     if st.session_state.remaining_units:
+        remaining = st.session_state.remaining_units
         # Row 4
         col1, col2, col3 = st.columns([0.2, 0.45, 0.35])
         with col1:
             with st.container(border=True):
                 st.metric(label='Completed Units', value=grades.completed_units(), delta=f'{grades.completed_units_delta()} units')
             with st.container(border=True):
-                st.metric(label='Remaining Units', value=st.session_state.remaining_units)
+                st.metric(label='Remaining Units', value=remaining)
         with col2:
             with st.container(border=True):
-                total = grades.completed_units() + st.session_state.remaining_units
+                total = grades.completed_units() + remaining
                 percent = round(grades.completed_units() * 100 / total,2)
                 plot_gauge(percent, '#00BFFF', f'%', 'IPS Progress in Percent', 100)            
         with col3:
             with st.container(border=True):
                 honor = st.session_state.check_eligibility
-                highest_possible = grades.check_highest_possible(st.session_state.remaining_units, honor, 0)
+                highest_possible = grades.check_highest_possible(remaining, {'A':100}, by_percent=True)
+                minimum_required = grades.check_minimum_required(remaining, honor)
                 eligibility_text = 'Possible 🥳' if highest_possible >= honors_dict[honor][0] else 'Impossible' 
 
-                st.metric(label=f'{st.session_state.check_eligibility} is...', value=eligibility_text)
-
+                st.metric(label=f'{st.session_state.check_eligibility} is...', value=eligibility_text, help="Highest attainable QPI assumes an **'A'** in all remaining courses.")
+                if highest_possible >= honors_dict[honor][0]:
+                    st.caption(f'To do this, get a minimum QPI of {minimum_required} on your remaining {remaining} units.')
                 st.write(f'Highest attainable QPI: {highest_possible}\nHonor range: {honors_dict[honor][0]} to {honors_dict[honor][-1]}')
-                st.caption("Highest attainable QPI assumes an **'A'** in all remaining courses.")
 
         # Row 5
-        # mathematically, itis possible but for many of us, it is hard to get an A. Let's try to estimate your chances better
         with st.expander('Realistically, it is hard to get *A*s on **all** remaining courses. Want to estimate your chances better?', expanded=False):
-            st.write(':grey[Let\'s assume all your remaining courses all weigh 3 units.]')
-            col1, col2, col3 = st.columns([0.4,0.2,0.3], gap='small')
-            with col1:
-                with st.container(border=True):
-                    st.slider('What percent of your remaining courses do you estimate to get B+ on?', min_value=0, max_value=100, step=10, format=f'%f%%', key='ratio')
-            with col2:
-                with st.container(border=True):
-                    ratio = st.session_state.ratio
-                    st.caption('Your estimation')
-                    summary = (f'{100-ratio}% A and {ratio}% B+')
-                    st.markdown(f'''<span style="  font-size:22px ; font-weight:light ; ">{summary}</span>''', unsafe_allow_html=True)
-            with col3:
-                with st.container(border=True):  
-                    honor = st.session_state.check_eligibility
-                    highest_possible = grades.check_highest_possible(st.session_state.remaining_units, honor, st.session_state.ratio)
-                    eligibility_text = 'possible 👍' if highest_possible >= honors_dict[honor][0] else 'impossible 😟' 
+            st.write(':grey[Let\'s estimate your performance on your **remaining courses**. Choose between estimating by percentage (aproximate) or by number of units (precise).]')
+            letters = ['A', 'B+', 'B', 'C+', 'C']
+            tab1, tab2 = st.tabs(['Estimate apprixamtely', 'Estimate precisely'])
 
-                    st.markdown(f'<span style=" font-size:22px ">{st.session_state.check_eligibility} is {eligibility_text}</span>', unsafe_allow_html=True)
-                    st.caption(f'Highest attainable QPI: {highest_possible}')
+            def row_5_execute(bool1, d, bool2):
+                if bool1:
+                    with st.container(border=True):
+                        honor = st.session_state.check_eligibility
+                        highest_possible = grades.check_highest_possible(remaining, d, by_percent=bool2)
+                        eligibility_text = 'Possible 🥳' if highest_possible >= honors_dict[honor][0] else 'Impossible' 
+                        st.metric(label=f'{st.session_state.check_eligibility} is...', value=eligibility_text)
+                    n1, n2 = st.columns(2)
+                    with n1:
+                        with st.container(border=True):
+                            st.metric(label='Estimated QPI', value=highest_possible)
+                    with n2:
+                        with st.container(border=True):
+                            st.metric(label='Target QPI', value=honors_dict[honor][0])
 
+            with tab1:
+                col1, col2 = st.columns([0.5,0.5], gap='small')
+                with col1:
+                    percent_sum, percent_dict = 0,{}
+                    for letter in letters:
+                        st.number_input(f'How much of your remaining units will be :blue[**{letter}**]?', min_value=0, max_value=100, step=10, key=letter)
+                        percent_sum += st.session_state[letter]
+                        percent_dict[letter] = st.session_state[letter]
+                with col2:
+                    with st.container(border=True):
+                        st.write('Percentage Sum')
+                        if percent_sum > 100:
+                            progress_text = f'Total: :red[{percent_sum}%]'
+                            st.warning(f'Percent is currently at **{percent_sum}%**. Please set total to 100% only.', icon="⚠️")
+                        else:
+                            st.progress(percent_sum, text=f'{percent_sum}%')
+                            if percent_sum == 100:
+                                st.button('Estimate my chances', key='estimate_p')
+                                row_5_execute(st.session_state.estimate_p, percent_dict, True)
+                    
+
+            with tab2:
+                col1, col2 = st.columns([0.5,0.5], gap='small')
+                with col1:
+                    unit_sum, unit_dict = 0,{}
+                    for letter in letters:
+                        st.number_input(f'How many of your remaining units will be :blue[**{letter}**]?', min_value=0, max_value=remaining, step=1, key=f'{letter}_uc')
+                        unit_sum += st.session_state[f'{letter}_uc']
+                        unit_dict[letter] = st.session_state[f'{letter}_uc']
+                with col2:
+                    with st.container(border=True):
+                        st.write(' Total Number of Units')
+                        if unit_sum > remaining:
+                            progress_text = f'Total: :red[{percent_sum}%]'
+                            st.warning(f'Number of units is currently at **{unit_sum}%**. Please set total to {remaining} units only.', icon="⚠️")
+                        else:
+                            st.progress(unit_sum/remaining, text=f'{unit_sum}/{remaining}')
+                            if unit_sum == remaining:
+                                st.button('Estimate my chances', key='estimate_uc')
+                                row_5_execute(st.session_state.estimate_uc, unit_dict, False)
         add_vertical_space(1)
 
     # Row 6
@@ -322,7 +362,6 @@ try:
             st.toggle(f"Show Weighted Average (for {', '.join(st.session_state.courses)})', key='show_qpi")
 
         add_vertical_space(1)
-
 
     # Row 7
     col1, col2 = st.columns([0.65,0.35])
@@ -409,7 +448,7 @@ try:
     st.caption('Help me make QPI Wrapped better! (This data will be recorded)')
     with st.container(border=True):
         survey = ss.StreamlitSurvey()
-        survey.text_input('Reports on broken features, feedback, and suggestions would be really helpful! 💙', id='feedback')
+        survey.text_input('Comments, suggestions for new features, and reports on bugs would be really helpful! 💙', id='feedback')
         survey_button = st.button('Submit')
 
         info_secrets, info_data = st.secrets['gcp_service_account'], {}

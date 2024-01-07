@@ -126,17 +126,25 @@ class Grades:
         df['Units'] = pd.to_numeric(df['Units'], errors='coerce')
         return df['Units'].sum()
     
-    def check_highest_possible(self, remaining_units, honor, b_plus_percent):
+    def check_highest_possible(self, remaining_units, d, by_percent):
         df = self.df
         df['Units'] = pd.to_numeric(df['Units'], errors='coerce')
-        b_plus_percent /= 100
-        a_percent = 1-b_plus_percent
-
-        total_weighted = df['Weighted Grade'].sum() + (4 * (a_percent*remaining_units)) + (3 * (b_plus_percent*remaining_units))
+        total_weighted = df['Weighted Grade'].sum() 
+        multiplier = remaining_units / 100 if by_percent else 1
+        print('----------')
+        for letter,amount in d.items():
+            total_weighted += letters[letter] * (amount * multiplier)
+            print(letter, amount, letters[letter]*amount*multiplier)
         total_units = df['Units'].sum() + remaining_units
         highest_possible = round(total_weighted / total_units, 2)
-
         return highest_possible
+
+    def check_minimum_required(self, remaining_units, honor):
+        df = self.df
+        taken_weighted = df['Weighted Grade'].sum() 
+        total_units = df['Units'].sum() + remaining_units
+        remaining_weighted = (honors_dict[honor][0] * total_units) - taken_weighted
+        return round(remaining_weighted/remaining_units, 2)
 
     def analyze_courses(self, courses):
         df = self.df
