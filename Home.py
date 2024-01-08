@@ -493,7 +493,7 @@ try:
 except AttributeError:
     st.info('Waiting for input... 😴')
 except Exception as e:
-    st.warning("Sorry, something went wrong! Please help me fix this by copy-pasting the printed error below on the feedback box. Thanks!', icon='⚠️")
+    st.warning("Sorry, something went wrong! Please help me fix this by copy-pasting the printed error below on the feedback form. Thanks!', icon='⚠️")
     st.write(e)
 finally:
     feedback_gform()
