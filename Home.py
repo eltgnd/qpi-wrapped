@@ -445,7 +445,7 @@ try:
     # Submit feedback
     st.divider()
     add_vertical_space(1)
-    st.caption('Help me make QPI Wrapped better! (This data will be recorded)')
+    st.caption('Help me make QPI Wrapped better! (This anonymous data will be recorded)')
     with st.container(border=True):
         survey = ss.StreamlitSurvey()
         survey.text_input('Comments, suggestions for new features, and reports on bugs would be really helpful! 💙', id='feedback')
