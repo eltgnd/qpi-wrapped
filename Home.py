@@ -48,6 +48,49 @@ def find_out_button():
 # Logo
 def logo():
     st.title('Hi')
+def feedback():
+    st.divider()
+    add_vertical_space(1)
+    st.caption('Help me make QPI Wrapped better! (This anonymous data will be recorded)')
+    with st.container(border=True):
+        survey = ss.StreamlitSurvey()
+        survey.text_input('Comments, suggestions for new features, and reports on bugs would be really helpful! 💙', id='feedback')
+        survey_button = st.button('Submit')
+
+        info_secrets, info_data = st.secrets['gcp_service_account'], {}
+        for k,v in info_secrets.items():
+            info_data[k] = v
+        feedback = survey.data['feedback']['value']
+
+        st.write(info_data)
+
+        if survey_button and feedback != '':
+            # Add to Google Sheet
+            with st.spinner('Recording feedback...'):
+                connection = connect(":memory:",
+                        adapter_kwargs = {
+                                "gsheetsapi": { 
+                                "service_account_info":  info_data
+                                        }
+                                            }
+                            )
+                insert = f"""
+                        INSERT INTO "{st.secrets["private_gsheets_url"]}" (Responses)
+                        VALUES ("{feedback}")
+                        """
+                connection.execute(insert)
+
+            st.balloons()
+            st.toast('Feedback recorded!', icon='📝')
+def feedback_gform():
+    st.divider()
+    add_vertical_space(1)
+    with st.expander('Help me make QPI Wrapped better! (This anonymous data will be recorded'):
+        add_vertical_space(1)
+        st.write('Comments, suggestions for new features, and reports on bugs would be really helpful! 💙\n\nYou may also contact me at https://facebook.com/eltgnd!')
+        st.link_button(label='Go to Google Form', url='https://forms.gle/wdLjZdnYx3UHUukn7', type='primary')
+
+
 
 # Initialize
 st.set_page_config(page_title='Your QPI Wrapped', page_icon='📘', layout="centered", initial_sidebar_state="auto", menu_items=None)
@@ -154,7 +197,7 @@ try:
     add_vertical_space(1)
 
     # Row 1
-    width = [0.3,0.3,0.4] if grades.dean_list() else [0.5,0.5,0]
+    width = [0.3,0.3,0.4] if grades.dean_list() else [0.5,0.5,0.01]
     col1, col2, col3 = st.columns(width)
     with col1:
         with st.container(border=True):
@@ -442,45 +485,15 @@ try:
                 text = 'right' if st.session_state.guess == correct_guess else 'wrong'
                 st.toast(f"You got the fun question {text}!", icon='😳')
 
-    # Submit feedback
-    st.divider()
-    add_vertical_space(1)
-    st.caption('Help me make QPI Wrapped better! (This anonymous data will be recorded)')
-    with st.container(border=True):
-        survey = ss.StreamlitSurvey()
-        survey.text_input('Comments, suggestions for new features, and reports on bugs would be really helpful! 💙', id='feedback')
-        survey_button = st.button('Submit')
-
-        info_secrets, info_data = st.secrets['gcp_service_account'], {}
-        for k,v in info_secrets.items():
-            info_data[k] = v
-        info_data['private_key'] = f"-----BEGIN PRIVATE KEY-----\n{info_data['private_key'] }\n-----END PRIVATE KEY-----\n" # fixes the key error
-        feedback = survey.data['feedback']['value']
-
-        if survey_button and feedback != '':
-            # Add to Google Sheet
-            with st.spinner('Recording feedback...'):
-                connection = connect(":memory:",
-                        adapter_kwargs = {
-                                "gsheetsapi": { 
-                                "service_account_info":  info_data
-                                        }
-                                            }
-                            )
-                insert = f"""
-                        INSERT INTO "{st.secrets["private_gsheets_url"]}" (Responses)
-                        VALUES ("{feedback}")
-                        """
-                connection.execute(insert)
-
-            st.balloons()
-            st.toast('Feedback recorded!', icon='📝')
-
     # Announcement
     add_vertical_space(1)
     with st.expander('What\'s next? 👀', expanded=False):
         st.write('Support for other universities\' grades is coming soon!')
 
-except Exception as e:
-    add_vertical_space(2)
+except AttributeError:
     st.info('Waiting for input... 😴')
+except Exception as e:
+    st.warning("Sorry, something went wrong! Please help me fix this by copy-pasting the printed error below on the feedback box. Thanks!', icon='⚠️")
+    st.write(e)
+finally:
+    feedback_gform()
