@@ -359,7 +359,7 @@ try:
             fig.update_layout(margin=dict(l=30, r=30, t=50, b=20))
             st.plotly_chart(fig, use_container_width=True)
 
-            st.toggle(f"Show Weighted Average (for {', '.join(st.session_state.courses)})', key='show_qpi")
+            st.toggle(f"Show Weighted Average (for {', '.join(st.session_state.courses)})", key='show_qpi')
 
         add_vertical_space(1)
 
