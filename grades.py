@@ -165,3 +165,11 @@ class Grades:
     def group_by_units(self):
         df = self.df
         return self.df.groupby('Semester')['Units'].sum().reset_index()
+
+    def has_missing_data(self):
+        df = self.df
+        return df.isnull(). values.any()
+    
+    def get_missing_data(self):
+        df = self.df
+        return df[df.isna().any(axis=1)]

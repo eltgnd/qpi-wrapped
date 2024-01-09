@@ -31,6 +31,11 @@ correlation_scales = {
     'Strong': (0.6, 0.79),
     'Very High': (0.8, 1.0)
 }
+donation_choices = {
+    'PHP 50':'https://scontent.xx.fbcdn.net/v/t1.15752-9/413185299_313428951057664_6475839568897633274_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=510075&_nc_eui2=AeGWfR0iSFoIUR-gyr75FYQHIncde6cGYg0idx17pwZiDQ3VOIq8VZOJsgoH1TRb07DG4IMQ1LLcfEArjeWRzvlN&_nc_ohc=IVPDyqN5DD4AX8i948P&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&cb_e2o_trans=q&oh=03_AdRPKVGSmoV7ALd89jKwzIUnz7r160n_rxUxoqlmCxr79w&oe=65C4A98F',
+    'PHP 100':'https://scontent.xx.fbcdn.net/v/t1.15752-9/413898045_1371548693482521_6834946516334489008_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=510075&_nc_eui2=AeEHibqWTLk5_3qwt2ffN_xJP7EQzTlPD6o_sRDNOU8PqlcAHvvZwCNj2Og7V5NJPgoIluUveEcrIuHwut6P04co&_nc_ohc=Fuy6MxZkXx4AX8bPjIh&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&cb_e2o_trans=q&oh=03_AdRot2gUXnxpNbtbOCD69nyF19KZqzfGlPn0BZhpt57uXw&oe=65C48885',
+    'Other amount':'https://scontent.xx.fbcdn.net/v/t1.15752-9/414154292_331338256473546_3364700846078338076_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=510075&_nc_eui2=AeG9Ct9kEKIM5v-5B9DPDUyl46Z1FWeCfSfjpnUVZ4J9JzeQgAPFvjjshSPjWWMhZ4HQJZLw0QliXcd2Rkmt2uMT&_nc_ohc=hlUmFItLL9QAX9c5A1L&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&cb_e2o_trans=q&oh=03_AdQlaW47yGUt1lB5nIMarFVVbMHhh6cnf1OeEtg8CK_qMQ&oe=65C49F70'
+}
 
 # Functions
 def error(message):
@@ -85,10 +90,25 @@ def feedback():
 def feedback_gform():
     st.divider()
     add_vertical_space(1)
-    with st.expander('Help me make QPI Wrapped better! (This anonymous data will be recorded'):
+    with st.expander('Help me make QPI Wrapped better! (This anonymous data will be recorded)'):
         add_vertical_space(1)
-        st.write('Comments, suggestions for new features, and reports on bugs would be really helpful! 💙\n\nYou may also contact me at https://facebook.com/eltgnd!')
-        st.link_button(label='Go to Google Form', url='https://forms.gle/wdLjZdnYx3UHUukn7', type='primary')
+        # st.write('Comments, suggestions for new features, and reports on bugs would be really helpful! 💙\n\nYou may also contact me at https://facebook.com/eltgnd!')
+
+        html_str = """
+                <!DOCTYPE html> 
+        <html> 
+        
+        <body> 
+            <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSdvKIGvBq-oqejFHxahYDHR0HSCwpULB4x6P4SG2BbHGWwvaQ/viewform?embedded=true" width="640" height="928" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
+        </body> 
+        
+        </html> 
+        """
+
+        st.markdown(html_str, unsafe_allow_html=True)
+        add_vertical_space(1)
+        st.link_button(label='Click here if you can\'t access the form above.', url='https://forms.gle/wdLjZdnYx3UHUukn7', type='primary')
+        add_vertical_space(1)
 
 
 
@@ -108,7 +128,9 @@ with st.expander('See how to copy paste grades', expanded=False):
         \n3. Copy the big table and paste it here!
     ''')
     st.image('https://scontent.xx.fbcdn.net/v/t1.15752-9/407088558_396969352731566_5235174993494823881_n.png?_nc_cat=103&ccb=1-7&_nc_sid=510075&_nc_eui2=AeEQIolU45pnuLrvVhT_5LSwec86j5goO6Z5zzqPmCg7phHZHCRq6OFBIoNhpqC9a8BaiRfCC9v85kGaHo8pE0rm&_nc_ohc=IstVxbAedXAAX8a7j5p&_nc_oc=AQl5EUZMveKZqWo7wmXntup_DCNDeTubAVcOc9HsZVOQ9HPt_LboQgk4DTkpOfE-w_No6XORLqAQycrq-ywacCBh&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&cb_e2o_trans=q&oh=03_AdRg16NwA4mvNFXObHeOIn1vO_SxvkiwgnFMllnoYWvZdA&oe=65BCE003')
-
+    add_vertical_space(1)
+    st.success('Copying the data should include all rows and columns of the table! (See image below)', icon='✅')
+    st.image('https://scontent.xx.fbcdn.net/v/t1.15752-9/414096677_907820594006197_6483984918026175494_n.png?_nc_cat=107&ccb=1-7&_nc_sid=510075&_nc_eui2=AeHV-KVe_JsMcsKkEbJAdH3JkvXmKAUEOvuS9eYoBQQ6-9-TcKRpNCg2mu1yV4g6IIuVQvLbEZUumZtSC_OaSyGC&_nc_ohc=giRuE3WjJoIAX9BSyDe&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&cb_e2o_trans=q&oh=03_AdRRh6oFXY6cmCtxIQoJB0qYlqnT3cVwg-PST0NU-DrXFQ&oe=65C48855')
 # if submit:
 #     with st.form(key='df'):
 #         df = get_table(s)
@@ -154,6 +176,13 @@ try:
         with st.spinner('Analyzing your data...'):
             time.sleep(3)
         st.toast('Done analyzing!', icon='🥳')
+
+    # Missing data
+    if grades.has_missing_data():
+        st.warning('Missing data detected! See table below. Please ensure all rows and columns are copied as the analysis is now inaccurate. Refresh the page to try again!', icon='⚠️')
+        st.dataframe(grades.get_missing_data(), hide_index=True, use_container_width=True)
+        add_vertical_space(2)
+        st.divider()
 
     # Table
     with st.expander('View Table', expanded=False):
@@ -486,14 +515,32 @@ try:
                 st.toast(f"You got the fun question {text}!", icon='😳')
 
     # Announcement
-    add_vertical_space(1)
-    with st.expander('What\'s next? 👀', expanded=False):
-        st.write('Support for other universities\' grades is coming soon!')
+    add_vertical_space(2)
+    st.divider()
+    with st.container(border=True):
+        st.write('What\'s next? 👀') 
+        st.write('QPI Wrapped is an exciting application of data science. But right now, it\'s only for ADMU students. To make QPI Wrapped more accessible, I\'m planning to expand QPI Wrapped to accomodate other universities\' grades!\n\nIf you\'re interested to include your school, please contact me at https://facebook.com/eltgnd!')
+    
+    with st.container(border=True): 
+        col1, col2 = st.columns(2, gap='medium')
+        with col1:
+            st.write('QPI Wrapped is free forever to use. 🧮\n\nUpon popular request, you can now leave a tip via GCash!')
+            with st.container(border=True):
+                choice = st.radio('Choose an amount', ['PHP 50', 'PHP 100', 'Other amount'])
+                donate = st.button('Leave a tip')
+        if donate:
+            st.balloons()
+            with col1:
+                st.write('Thank you so much! 💙')
+            with col2:
+                st.image(donation_choices[choice])
 
 except AttributeError:
     st.info('Waiting for input... 😴')
+except IndexError:
+    st.error("It seems that your input is incomplete. Try double checking if you copy-pasted your AISIS grades correctly.", icon='⚠️')
 except Exception as e:
-    st.warning("Sorry, something went wrong! Please help me fix this by copy-pasting the printed error below on the feedback form. Thanks!', icon='⚠️")
+    st.warning("Sorry, something went wrong! Please help me fix this by reporting the error in the feedback form below. Thanks!', icon='⚠️")
     st.write(e)
 finally:
     feedback_gform()
