@@ -538,7 +538,9 @@ try:
 except AttributeError:
     st.info('Waiting for input... 😴')
 except IndexError:
-    st.error("It seems that your input is incomplete. Try double checking if you copy-pasted your AISIS grades correctly.", icon='⚠️')
+    st.error("It seems that your input is incomplete. Refresh this page and try double checking if you copied your AISIS grades correctly.", icon='⚠️')
+    st.image('https://scontent.xx.fbcdn.net/v/t1.15752-9/414096677_907820594006197_6483984918026175494_n.png?_nc_cat=107&ccb=1-7&_nc_sid=510075&_nc_eui2=AeHV-KVe_JsMcsKkEbJAdH3JkvXmKAUEOvuS9eYoBQQ6-9-TcKRpNCg2mu1yV4g6IIuVQvLbEZUumZtSC_OaSyGC&_nc_ohc=giRuE3WjJoIAX9BSyDe&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&cb_e2o_trans=q&oh=03_AdRRh6oFXY6cmCtxIQoJB0qYlqnT3cVwg-PST0NU-DrXFQ&oe=65C48855', caption='Ensure all rows and columns are copied!')
+    st.write('If this issue still persists, please report this error in the feedback form.')
 except Exception as e:
     st.warning("Sorry, something went wrong! Please help me fix this by reporting the error in the feedback form below. Thanks!', icon='⚠️")
     st.write(e)
