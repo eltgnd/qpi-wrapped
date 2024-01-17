@@ -10,7 +10,8 @@ honors_dict = {
 }
 
 def correct_format(grade):
-    return True
+    return grade != ''
+    
 def get_table(s, part_of_qpi_only=True):
     columns = 'School Year	Sem	Course	Subject Code	Course Title	Units	Final Grade'.split('	')
     grades = s.split('\n')

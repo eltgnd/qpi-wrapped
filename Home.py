@@ -347,7 +347,7 @@ try:
         with st.expander('Realistically, it is hard to get *A*s on **all** remaining courses. Want to estimate your chances better?', expanded=False):
             st.write(':grey[Let\'s estimate your performance on your **remaining courses**. Choose between estimating by percentage (aproximate) or by number of units (precise).]')
             letters = ['A', 'B+', 'B', 'C+', 'C']
-            tab1, tab2 = st.tabs(['Estimate apprixamtely', 'Estimate precisely'])
+            tab1, tab2 = st.tabs(['Estimate approximately', 'Estimate precisely'])
 
             def row_5_execute(bool1, d, bool2):
                 if bool1:
