@@ -87,30 +87,6 @@ def feedback():
 
             st.balloons()
             st.toast('Feedback recorded!', icon='📝')
-def feedback_gform():
-    st.divider()
-    add_vertical_space(1)
-    with st.expander('Help me make QPI Wrapped better! (This anonymous data will be recorded)'):
-        add_vertical_space(1)
-        # st.write('Comments, suggestions for new features, and reports on bugs would be really helpful! 💙\n\nYou may also contact me at https://facebook.com/eltgnd!')
-
-        html_str = """
-                <!DOCTYPE html> 
-        <html> 
-        
-        <body> 
-            <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSdvKIGvBq-oqejFHxahYDHR0HSCwpULB4x6P4SG2BbHGWwvaQ/viewform?embedded=true" width="640" height="928" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
-        </body> 
-        
-        </html> 
-        """
-
-        st.markdown(html_str, unsafe_allow_html=True)
-        add_vertical_space(1)
-        st.link_button(label='Click here if you can\'t access the form above.', url='https://forms.gle/wdLjZdnYx3UHUukn7', type='primary')
-        add_vertical_space(1)
-
-
 
 # Initialize
 st.set_page_config(page_title='Your QPI Wrapped', page_icon='📘', layout="centered", initial_sidebar_state="auto", menu_items=None)
@@ -119,7 +95,7 @@ st.set_page_config(page_title='Your QPI Wrapped', page_icon='📘', layout="cent
 st.sidebar.write('')
 st.title('🦅📘 QPI Wrapped')
 add_vertical_space(1)
-st.write('Inspired by CompSAt\'s QPI Calculator, QPI Wrapped calculates your QPI and visualizes your grades for fun! To get started, input your grades from AISIS. :blue[**Privacy Notice: Your data is never saved.**]')
+st.write('Inspired by CompSAt\'s QPI Calculator, QPI Wrapped is an interactive web application that creates a beautiful dashboard for your AISIS grades. To get started, input your grades from AISIS. **Not an Atenean? Go to the "QPI Wrapped Extended" page in the left sidebar!** :blue[**Privacy Notice: Your data is never saved.**]')
 add_vertical_space(1)
 # Tutorial
 with st.expander('See how to copy paste grades', expanded=False):
@@ -191,25 +167,23 @@ try:
     # Sidebar
     with st.sidebar:
         st.caption('MORE TOOLS')
-        add_vertical_space(1)
 
         # Latin honors
-        st.write('**🤔 Latin Honor Eligibility**')
+        st.write('**🎓 Latin Honor Eligibility**')
         st.number_input('How many are your computable units left?', step=1, min_value=0, help='Computable units refer to units used in computing your cumulative QPI (e.g. PE is not included)', key='remaining_units')
         if st.session_state.remaining_units != 0:
-            st.radio('Check eligibility', honors_dict.keys(), index=3, key='check_eligibility')
+            st.selectbox('Check eligibility', honors_dict.keys(), index=3, key='check_eligibility')
     
-        st.divider()
-
         # Summarize course
+        st.write('**🤔 Grade Analysis by Course**')
         qpi_temp = grades.compute_qpi(grades.df)
         course_choices = grades.qpi_by_course(minimum_courses=1).sort_values(by='Subjects', ascending=False).reset_index()['Course']
-        st.multiselect('Analyze courses based on course code/s', options=course_choices, key='courses', placeholder=course_choices[0])
+        st.multiselect('Select at least one class code!', options=course_choices, key='courses', placeholder=course_choices[0])
         if st.session_state.courses:
             with st.expander('View selected courses'):
                 st.dataframe(grades.analyze_courses(st.session_state.courses)[['Subject Code', 'Units', 'Final Grade']], hide_index=True)
-
-        st.divider()
+   
+        add_vertical_space(1)
 
         # About
         st.caption('Developed by Val Eltagonde. @eltgnd_v')
@@ -222,10 +196,15 @@ try:
             st.markdown("""<a href="https://www.instagram.com/eltgnd_v/">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Instagram_logo_2016.svg/2048px-Instagram_logo_2016.svg.png" 
                 width="25" height="25"></a>""", unsafe_allow_html=True)
-    
+
+    add_vertical_space(3)
+
+    st.header('Welcome to your QPI Wrapped. 👋')
     add_vertical_space(1)
 
     # Row 1
+    st.caption('AT A GLANCE')
+
     width = [0.3,0.3,0.4] if grades.dean_list() else [0.5,0.5,0.01]
     col1, col2, col3 = st.columns(width)
     with col1:
@@ -244,6 +223,8 @@ try:
     add_vertical_space(1)
 
     # Row 2
+    st.caption('QPI TREND')
+
     with st.container(border=True):
         option = st.toggle('Exclude Intersession QPI')
         fig = px.line(grades.qpi_by_semester(option), x='Semester', y='QPI', 
@@ -258,6 +239,8 @@ try:
     add_vertical_space(1)
 
     # Row 3
+    st.caption('QPI DISTRIBUTION')
+
     col1, col2 = st.columns([0.5,0.5])
     with col1:
         with st.container(border=True):
@@ -320,6 +303,8 @@ try:
     if st.session_state.remaining_units:
         remaining = st.session_state.remaining_units
         # Row 4
+        st.caption('THE BIGGER PICTURE')
+
         col1, col2, col3 = st.columns([0.2, 0.45, 0.35])
         with col1:
             with st.container(border=True):
@@ -408,6 +393,8 @@ try:
 
     # Row 6
     if st.session_state.courses:
+        st.caption('QPI ANALYSIS')
+
         if 'show_qpi' not in st.session_state:
             st.session_state.show_qpi = False
         with st.container(border=True):
@@ -435,7 +422,15 @@ try:
 
         add_vertical_space(1)
 
-    # Row 7
+    # Row 7 
+    st.caption('QPI CHECKER')
+    with st.container(border='True'):
+        pass
+
+
+    # Row 8
+    st.caption('SOME DATA SCIENCE FUN')
+
     col1, col2 = st.columns([0.65,0.35])
     if 'find_out' not in st.session_state:
         st.session_state.find_out = False
@@ -514,27 +509,6 @@ try:
                 text = 'right' if st.session_state.guess == correct_guess else 'wrong'
                 st.toast(f"You got the fun question {text}!", icon='😳')
 
-    # Announcement
-    add_vertical_space(2)
-    st.divider()
-    with st.container(border=True):
-        st.write('What\'s next? 👀') 
-        st.write('QPI Wrapped is an exciting application of data science. But right now, it\'s only for ADMU students. To make QPI Wrapped more accessible, I\'m planning to expand QPI Wrapped to accomodate other universities\' grades!\n\nIf you\'re interested to include your school, please contact me at https://facebook.com/eltgnd!')
-    
-    with st.container(border=True): 
-        col1, col2 = st.columns(2, gap='medium')
-        with col1:
-            st.write('QPI Wrapped is free forever to use. 🧮\n\nUpon popular request, you can now leave a tip via GCash!')
-            with st.container(border=True):
-                choice = st.radio('Choose an amount', ['PHP 50', 'PHP 100', 'Other amount'])
-                donate = st.button('Leave a tip')
-        if donate:
-            st.balloons()
-            with col1:
-                st.write('Thank you so much! 💙')
-            with col2:
-                st.image(donation_choices[choice])
-
 except AttributeError:
     st.info('Waiting for input... 😴')
 except IndexError:
@@ -544,5 +518,3 @@ except IndexError:
 except Exception as e:
     st.warning("Sorry, something went wrong! Please help me fix this by reporting the error in the feedback form below. Thanks!', icon='⚠️")
     st.write(e)
-finally:
-    feedback_gform()
