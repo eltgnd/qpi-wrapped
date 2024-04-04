@@ -423,9 +423,9 @@ try:
         add_vertical_space(1)
 
     # Row 7 
-    st.caption('QPI CHECKER')
-    with st.container(border='True'):
-        pass
+    # st.caption('QPI CHECKER')
+    # with st.container(border='True'):
+    #     pass
 
 
     # Row 8
