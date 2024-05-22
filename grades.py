@@ -173,4 +173,4 @@ class Grades:
     
     def get_missing_data(self):
         df = self.df
-        return df[df.isna().any(axis=1)]
+        return df[df.isna().any(axis=1)].fillna('[NO DATA FOUND]')

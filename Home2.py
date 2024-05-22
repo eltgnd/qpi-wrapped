@@ -5,16 +5,12 @@ import plotly.express as px
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
+import streamlit_survey as ss
 from shillelagh.backends.apsw.db import connect
-from streamlit_extras.add_vertical_space import add_vertical_space
-
-# Initialize
-st.set_page_config(page_title='Your QPI Wrapped', page_icon='📘', layout="centered", initial_sidebar_state="auto", menu_items=None)
-ss = st.session_state
 
 # Imported files
 from grades import Grades, honors_dict
-from ui import *
+from streamlit_extras.add_vertical_space import add_vertical_space
 from sample_data import sample_data
 from gauge import plot_gauge
 
@@ -35,89 +31,178 @@ correlation_scales = {
     'Strong': (0.6, 0.79),
     'Very High': (0.8, 1.0)
 }
-
 donation_choices = {
     'PHP 50':'https://scontent.xx.fbcdn.net/v/t1.15752-9/413185299_313428951057664_6475839568897633274_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=510075&_nc_eui2=AeGWfR0iSFoIUR-gyr75FYQHIncde6cGYg0idx17pwZiDQ3VOIq8VZOJsgoH1TRb07DG4IMQ1LLcfEArjeWRzvlN&_nc_ohc=IVPDyqN5DD4AX8i948P&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&cb_e2o_trans=q&oh=03_AdRPKVGSmoV7ALd89jKwzIUnz7r160n_rxUxoqlmCxr79w&oe=65C4A98F',
     'PHP 100':'https://scontent.xx.fbcdn.net/v/t1.15752-9/413898045_1371548693482521_6834946516334489008_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=510075&_nc_eui2=AeEHibqWTLk5_3qwt2ffN_xJP7EQzTlPD6o_sRDNOU8PqlcAHvvZwCNj2Og7V5NJPgoIluUveEcrIuHwut6P04co&_nc_ohc=Fuy6MxZkXx4AX8bPjIh&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&cb_e2o_trans=q&oh=03_AdRot2gUXnxpNbtbOCD69nyF19KZqzfGlPn0BZhpt57uXw&oe=65C48885',
     'Other amount':'https://scontent.xx.fbcdn.net/v/t1.15752-9/414154292_331338256473546_3364700846078338076_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=510075&_nc_eui2=AeG9Ct9kEKIM5v-5B9DPDUyl46Z1FWeCfSfjpnUVZ4J9JzeQgAPFvjjshSPjWWMhZ4HQJZLw0QliXcd2Rkmt2uMT&_nc_ohc=hlUmFItLL9QAX9c5A1L&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&cb_e2o_trans=q&oh=03_AdQlaW47yGUt1lB5nIMarFVVbMHhh6cnf1OeEtg8CK_qMQ&oe=65C49F70'
 }
 
-# Input variables
-input_vars = {'grade_submit':False, 'latin_honor_toast':False}
-for key,val in input_vars.items():
-    if key not in ss:
-        ss[key] = val
-def grade_submit(grades):
-    ss['grades'] = grades
-    ss['grade_submit'] = True 
+# Functions
+def error(message):
+    st.write(message)
+def save_edits():
+    session_state.original_data = session_state.edited_data
+def form_callable():
+    try:
+        df = get_table(session_state.str)
+        session_state.original_data = df
+    except:
+        st.write('Error!')
 def find_out_button():
-    ss['find_out'] = True
-def latin_honor_toast():
-    ss['latin_honor_toast'] = True
+    st.session_state.find_out = True
+# Logo
+def logo():
+    st.title('Hi')
+def feedback():
+    st.divider()
+    add_vertical_space(1)
+    st.caption('Help me make QPI Wrapped better! (This anonymous data will be recorded)')
+    with st.container(border=True):
+        survey = ss.StreamlitSurvey()
+        survey.text_input('Comments, suggestions for new features, and reports on bugs would be really helpful! 💙', id='feedback')
+        survey_button = st.button('Submit')
 
+        info_secrets, info_data = st.secrets['gcp_service_account'], {}
+        for k,v in info_secrets.items():
+            info_data[k] = v
+        feedback = survey.data['feedback']['value']
 
+        st.write(info_data)
+
+        if survey_button and feedback != '':
+            # Add to Google Sheet
+            with st.spinner('Recording feedback...'):
+                connection = connect(":memory:",
+                        adapter_kwargs = {
+                                "gsheetsapi": { 
+                                "service_account_info":  info_data
+                                        }
+                                            }
+                            )
+                insert = f"""
+                        INSERT INTO "{st.secrets["private_gsheets_url"]}" (Responses)
+                        VALUES ("{feedback}")
+                        """
+                connection.execute(insert)
+
+            st.balloons()
+            st.toast('Feedback recorded!', icon='📝')
+
+# Initialize
+st.set_page_config(page_title='Your QPI Wrapped', page_icon='📘', layout="centered", initial_sidebar_state="auto", menu_items=None)
 
 # Header
 st.sidebar.write('')
 st.title('QPI Wrapped 📉')
 add_vertical_space(1)
 st.write('Inspired by Spotify Wrapped and CompSAt\'s QPI Calculator, QPI Wrapped is a beautiful dashboard for your AISIS grades. To get started, paste your grades from AISIS or manually input your grades.')
-st.info('**Privacy notice**: Your data is never saved.')
+st.info('**Privacy notice**: Your data is never saved.', icon='👋')
 
 add_vertical_space(1)
+# Tutorial
+with st.expander('See how to copy paste grades', expanded=False):
+    st.write('''1. Visit AISIS and go to `MY GRADES`.
+        \n2. Select `ALL GRADES` from the dropdown and click the `DISPLAY GRADES` button.
+        \n3. Copy the big table and paste it here!
+    ''')
+    st.image('https://scontent.xx.fbcdn.net/v/t1.15752-9/407088558_396969352731566_5235174993494823881_n.png?_nc_cat=103&ccb=1-7&_nc_sid=510075&_nc_eui2=AeEQIolU45pnuLrvVhT_5LSwec86j5goO6Z5zzqPmCg7phHZHCRq6OFBIoNhpqC9a8BaiRfCC9v85kGaHo8pE0rm&_nc_ohc=IstVxbAedXAAX8a7j5p&_nc_oc=AQl5EUZMveKZqWo7wmXntup_DCNDeTubAVcOc9HsZVOQ9HPt_LboQgk4DTkpOfE-w_No6XORLqAQycrq-ywacCBh&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&cb_e2o_trans=q&oh=03_AdRg16NwA4mvNFXObHeOIn1vO_SxvkiwgnFMllnoYWvZdA&oe=65BCE003')
+    add_vertical_space(1)
+    st.success('Copying the data should include all rows and columns of the table! (See image below)', icon='✅')
+    st.image('https://scontent.xx.fbcdn.net/v/t1.15752-9/414096677_907820594006197_6483984918026175494_n.png?_nc_cat=107&ccb=1-7&_nc_sid=510075&_nc_eui2=AeHV-KVe_JsMcsKkEbJAdH3JkvXmKAUEOvuS9eYoBQQ6-9-TcKRpNCg2mu1yV4g6IIuVQvLbEZUumZtSC_OaSyGC&_nc_ohc=giRuE3WjJoIAX9BSyDe&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&cb_e2o_trans=q&oh=03_AdRRh6oFXY6cmCtxIQoJB0qYlqnT3cVwg-PST0NU-DrXFQ&oe=65C48855')
+# if submit:
+#     with st.form(key='df'):
+#         df = get_table(s)
+#         st.data_editor(df, hide_index=True, use_container_width=True)
+#         update = st.form_submit_button(label='Update table')
+
+# with open('sample_data.txt', 'r') as file:
+#     s = file.read()
+
+if 'submitted' not in st.session_state:
+    st.session_state.submitted = False
 
 # Form
-if not ss.grade_submit:
-    ui_sidebar()
-    with st.container(border=True):
-        form_option = st.radio('How do you want to input your grades?', ['Paste my grades from AISIS', 'Manually encode my grades'])
+with st.container(border=True):
+    user_input = st.text_area('Input your grades from AISIS.', 
+        placeholder='Refresh this page if you can\'t input your text!',
+        disabled=st.session_state.submitted,
+        key='str'
+    )
+    col1, col2 = st.columns([0.5,3.5], gap='small')
+    with col1:
+        submit = st.button(label='Submit', type='primary')
+    with col2:
+        sample = st.button(label='Try sample data')
 
-    if form_option == 'Paste my grades from AISIS':
-        # Tutorial
-        ui_tutorial()
+if sample:
+    if 'data' not in st.session_state:
+        st.session_state.data = sample_data
+        st.session_state.submitted = True
+if submit:
+    if 'data' not in st.session_state:
+        st.session_state.data = user_input
+        st.session_state.submitted = True
 
-        # Input
-        with st.container(border=True):
-            s = st.text_area('Paste here')
-        try:
-            grades = Grades(s)
-            missing = grades.has_missing_data()
-            st.dataframe(grades.df, hide_index=True, use_container_width=True)
-            # Missing data
-            if missing:
-                st.warning('Missing data detected! See missing cells below. Please ensure all copied rows are complete.', icon='⚠️')
-                st.dataframe(grades.get_missing_data(), hide_index=True, use_container_width=True)
-            # Submit
-            submit = st.button('Analyze Grades', type='primary', disabled=missing, on_click=grade_submit(grades))
-        except:
-            pass
+try:
+    s = st.session_state.data
+    grades = Grades(s)
 
-else:
-    grades = ss.grades
+    # Wait
+    if 'waited' not in st.session_state:
+        st.session_state.waited = True  
+        add_vertical_space(1)
+        with st.spinner('Analyzing your data...'):
+            time.sleep(3)
+        st.toast('Done analyzing!', icon='🥳')
+
+    # Missing data
+    if grades.has_missing_data():
+        st.warning('Missing data detected! See table below. Please ensure all rows and columns are copied as the analysis is now inaccurate. Refresh the page to try again!', icon='⚠️')
+        st.dataframe(grades.get_missing_data(), hide_index=True, use_container_width=True)
+        add_vertical_space(2)
+        st.divider()
+
+    # Table
+    with st.expander('View Table', expanded=False):
+        st.dataframe(grades.df, hide_index=True, use_container_width=True)
 
     # Sidebar
     with st.sidebar:
         st.caption('MORE TOOLS')
+
         # Latin honors
         st.write('**🎓 Latin Honor Eligibility**')
         st.number_input('How many are your computable units left?', step=1, min_value=0, help='Computable units refer to units used in computing your cumulative QPI (e.g. PE is not included)', key='remaining_units')
         if st.session_state.remaining_units != 0:
-
-            if not ss['latin_honor_toast']:
-                st.toast('Scroll down to find the Latin Honor Eligibility section!', icon='👋')
-            latin_honor_toast()
-
             st.selectbox('Check eligibility', honors_dict.keys(), index=3, key='check_eligibility')
+    
         # Summarize course
         st.write('**🤔 Grade Analysis by Course**')
         qpi_temp = grades.compute_qpi(grades.df)
         course_choices = grades.qpi_by_course(minimum_courses=1).sort_values(by='Subjects', ascending=False).reset_index()['Course']
         st.multiselect('Select at least one class code!', options=course_choices, key='courses', placeholder=course_choices[0])
-        add_vertical_space(2)
+        if st.session_state.courses:
+            with st.expander('View selected courses'):
+                st.dataframe(grades.analyze_courses(st.session_state.courses)[['Subject Code', 'Units', 'Final Grade']], hide_index=True)
+   
+        add_vertical_space(1)
 
-        ui_sidebar()
+        # About
+        st.caption('Developed by Val Eltagonde. @eltgnd_v')
+        col1, col2 = st.columns([0.05,0.45])
+        with col1:
+            st.markdown("""<a href="https://www.linkedin.com/in/val-eltagonde-8b6282141/">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/LinkedIn_icon.svg/2048px-LinkedIn_icon.svg.png" 
+                width="25" height="25"></a>""", unsafe_allow_html=True)
+        with col2:
+            st.markdown("""<a href="https://www.instagram.com/eltgnd_v/">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Instagram_logo_2016.svg/2048px-Instagram_logo_2016.svg.png" 
+                width="25" height="25"></a>""", unsafe_allow_html=True)
 
-    # Dashboard
+    add_vertical_space(3)
+
+    st.header('Welcome to your QPI Wrapped. 👋')
+    add_vertical_space(1)
 
     # Row 1
     st.caption('AT A GLANCE')
@@ -426,3 +511,12 @@ else:
                 text = 'right' if st.session_state.guess == correct_guess else 'wrong'
                 st.toast(f"You got the fun question {text}!", icon='😳')
 
+except AttributeError:
+    st.info('Waiting for input... 😴')
+except IndexError:
+    st.error("It seems that your input is incomplete. Refresh this page and try double checking if you copied your AISIS grades correctly.", icon='⚠️')
+    st.image('https://scontent.xx.fbcdn.net/v/t1.15752-9/414096677_907820594006197_6483984918026175494_n.png?_nc_cat=107&ccb=1-7&_nc_sid=510075&_nc_eui2=AeHV-KVe_JsMcsKkEbJAdH3JkvXmKAUEOvuS9eYoBQQ6-9-TcKRpNCg2mu1yV4g6IIuVQvLbEZUumZtSC_OaSyGC&_nc_ohc=giRuE3WjJoIAX9BSyDe&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&cb_e2o_trans=q&oh=03_AdRRh6oFXY6cmCtxIQoJB0qYlqnT3cVwg-PST0NU-DrXFQ&oe=65C48855', caption='Ensure all rows and columns are copied!')
+    st.write('If this issue still persists, please report this error in the feedback form.')
+except Exception as e:
+    st.warning("Sorry, something went wrong! Please help me fix this by reporting the error in the feedback form below. Thanks!', icon='⚠️")
+    st.write(e)
