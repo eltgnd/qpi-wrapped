@@ -90,6 +90,7 @@ def feedback():
 
 # Initialize
 st.set_page_config(page_title='Your QPI Wrapped', page_icon='📘', layout="centered", initial_sidebar_state="auto", menu_items=None)
+st.info('Hi! An updated QPI Wrapped with more features is currently under development and will be released by May 25, 2024 💙')
 
 # Header
 st.sidebar.write('')
