@@ -22,6 +22,7 @@ def get_table(s, part_of_qpi_only=True):
         data = [grade.split('	') for grade in grades if correct_format(grade) and part_of_qpi(grade)]
     else:
         data = [grade.split('	') for grade in grades if correct_format(grade)]
+        
     full_df = pd.DataFrame(data, columns=columns)
     
     full_df['Semester'] = full_df['School Year'] + '-' + full_df['Sem']
@@ -76,6 +77,12 @@ class Grades:
         new_df = df[df['Semester'] == sem].copy()
         return self.compute_qpi(new_df)    
 
+    def yearly_qpi(self):
+        df = self.df
+        latest_school_year = self.last_sem[:-2]
+        new_df = df[df['Semester'].str.startswith(latest_school_year)]
+        return self.compute_qpi(new_df)
+
     def latest_qpi(self):
         return self.semester_qpi(self.last_sem)
 
@@ -110,6 +117,11 @@ class Grades:
             df = df[df['Semester'] == self.last_sem].copy()
         return df.groupby('Final Grade')['Subject Code'].count().reset_index()
 
+    def letter_trend(self, letters):
+        df = self.df
+        new_df = df.groupby(['Semester', 'Final Grade']).size().reset_index(name='Count')
+        return new_df
+        
     def qpi_by_course(self, minimum_courses=2):
         df = self.df
         df['Units'] = pd.to_numeric(df['Units'], errors='coerce')
@@ -134,10 +146,10 @@ class Grades:
         df['Units'] = pd.to_numeric(df['Units'], errors='coerce')
         total_weighted = df['Weighted Grade'].sum() 
         multiplier = remaining_units / 100 if by_percent else 1
-        print('----------')
+        # print('----------')
         for letter,amount in d.items():
             total_weighted += letters[letter] * (amount * multiplier)
-            print(letter, amount, letters[letter]*amount*multiplier)
+            # print(letter, amount, letters[letter]*amount*multiplier)
         total_units = df['Units'].sum() + remaining_units
         highest_possible = round(total_weighted / total_units, 2)
         return highest_possible
@@ -178,3 +190,8 @@ class Grades:
         df = self.df
         df = df.replace('', np.nan)
         return df[df.isna().any(axis=1)].fillna('[NO DATA FOUND]')
+
+    def get_year_level(self):
+        df = self.df
+        df['School Year'] = df['Semester'].str[:-2]
+        return df['School Year'].nunique()
