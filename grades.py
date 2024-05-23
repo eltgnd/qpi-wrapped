@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 not_part_of_qpi = ['PHYED', 'NSTP', 'MATH 1.1', 'MATH 1.2', 'ENGL 9', 'ENGL 10', 'ENGL 10.1', 'FILI 10']
 letters = {'A':4.00, 'B+':3.50, 'B':3.00, 'C+':2.50, 'C':2.00, 'D':1.00, 'F':0.00, 'W':0.00}
@@ -27,6 +28,7 @@ def get_table(s, part_of_qpi_only=True):
     df = full_df[['Semester', 'Subject Code', 'Units', 'Final Grade']]
 
     return df
+    
 def part_of_qpi(grade):
     d = grade.split('	')
 
@@ -169,8 +171,10 @@ class Grades:
 
     def has_missing_data(self):
         df = self.df
-        return df.isnull(). values.any()
+        df = df.replace('', np.nan)
+        return df.isna().values.any()
     
     def get_missing_data(self):
         df = self.df
+        df = df.replace('', np.nan)
         return df[df.isna().any(axis=1)].fillna('[NO DATA FOUND]')

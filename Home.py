@@ -43,54 +43,69 @@ donation_choices = {
 }
 
 # Input variables
-input_vars = {'grade_submit':False, 'latin_honor_toast':False}
+input_vars = {'grade_submit':False, 'latin_honor_toast':False, 'submit':False}
 for key,val in input_vars.items():
     if key not in ss:
         ss[key] = val
 def grade_submit(grades):
+    with st.spinner('Creating your QPI Wrapped...'):
+        time.sleep(0)
     ss['grades'] = grades
-    ss['grade_submit'] = True 
+    ss['grade_submit'] = True
+    st.rerun()
 def find_out_button():
     ss['find_out'] = True
 def latin_honor_toast():
     ss['latin_honor_toast'] = True
 
 
-
 # Header
 st.sidebar.write('')
 st.title('QPI Wrapped 📉')
 add_vertical_space(1)
-st.write('Inspired by Spotify Wrapped and CompSAt\'s QPI Calculator, QPI Wrapped is a beautiful dashboard for your AISIS grades. To get started, paste your grades from AISIS or manually input your grades.')
-st.info('**Privacy notice**: Your data is never saved.')
-
-add_vertical_space(1)
 
 # Form
 if not ss.grade_submit:
+    st.write('Inspired by Spotify Wrapped and CompSAt\'s QPI Calculator, QPI Wrapped is a beautiful dashboard for your AISIS grades. To get started, paste your grades from AISIS.')
+    st.info('**Privacy notice**: Your data is never saved.')
+    add_vertical_space(1)
     ui_sidebar()
+
+    # Tutorial
+    ui_tutorial()
+
+    # Input
     with st.container(border=True):
-        form_option = st.radio('How do you want to input your grades?', ['Paste my grades from AISIS', 'Manually encode my grades'])
+        s = st.text_area('Paste here')
+        if s != '':
+            try:
+                grades = Grades(s)
+            except IndexError:
+                st.info('The pasted text does not seem to be in the correct format.', icon='🤔')
 
-    if form_option == 'Paste my grades from AISIS':
-        # Tutorial
-        ui_tutorial()
+    col1, col2, col3 = st.columns([1,1,2.2])
+    col1.button('Try Sample Grades', key='sample')
+    
+    try:
+        if grades:
+            ss.missing = grades.has_missing_data()
+        if ss.missing:
+            add_vertical_space(1)
+            st.warning('Missing data detected! Please ensure all copied rows are complete.', icon='⚠️')
+            st.dataframe(grades.get_missing_data(), hide_index=True, use_container_width=True)
+        else:
+            add_vertical_space(1)
+            st.caption('DATA PREVIEW')
+            st.dataframe(grades.df, hide_index=True, use_container_width=True) 
+            col2.button('Analyze Grades', key='submit', type='primary')
+    except:
+        pass
 
-        # Input
-        with st.container(border=True):
-            s = st.text_area('Paste here')
-        try:
-            grades = Grades(s)
-            missing = grades.has_missing_data()
-            st.dataframe(grades.df, hide_index=True, use_container_width=True)
-            # Missing data
-            if missing:
-                st.warning('Missing data detected! See missing cells below. Please ensure all copied rows are complete.', icon='⚠️')
-                st.dataframe(grades.get_missing_data(), hide_index=True, use_container_width=True)
-            # Submit
-            submit = st.button('Analyze Grades', type='primary', disabled=missing, on_click=grade_submit(grades))
-        except:
-            pass
+    if ss.sample:
+        grade_submit(Grades(sample_data))
+    if ss.submit:
+        grade_submit(grades)
+
 
 else:
     grades = ss.grades
@@ -425,4 +440,3 @@ else:
             if st.session_state.guess != guess_options[0]:
                 text = 'right' if st.session_state.guess == correct_guess else 'wrong'
                 st.toast(f"You got the fun question {text}!", icon='😳')
-
