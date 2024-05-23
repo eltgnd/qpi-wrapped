@@ -9,7 +9,7 @@ from shillelagh.backends.apsw.db import connect
 from streamlit_extras.add_vertical_space import add_vertical_space
 
 # Initialize
-st.set_page_config(page_title='Your QPI Wrapped', page_icon='📘', layout="centered", initial_sidebar_state="auto", menu_items=None)
+st.set_page_config(page_title='Your QPI Wrapped', page_icon='📉', layout="centered", initial_sidebar_state="auto", menu_items=None)
 ss = st.session_state
 
 # Imported files
@@ -129,7 +129,7 @@ else:
         st.caption('MORE TOOLS')
         # Latin honors
         st.write('**🎓 Latin Honor Eligibility**')
-        st.number_input('How many are your computable units left?', step=1, min_value=0, help='Computable units refer to units used in computing your cumulative QPI (e.g. PE is not included)', key='remaining_units')
+        st.number_input('How many computable units do you have left?', step=1, min_value=0, help='Computable units refer to units used in computing your cumulative QPI (e.g. PE is not included)', key='remaining_units')
         if st.session_state.remaining_units != 0:
 
             if not ss['latin_honor_toast']:
