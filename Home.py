@@ -61,14 +61,16 @@ input_vars = {
     'submit':False,
     'scholar':False,
     'duration':None,
-    'scholarship_type':'Academic'
+    'scholarship_type':'Academic',
+    'notification':False
     }
+
 for key,val in input_vars.items():
     if key not in ss:
         ss[key] = val
 def grade_submit(grades):
     with st.spinner('Creating your QPI Wrapped...'):
-        time.sleep(0)
+        time.sleep(3)
     ss['grades'] = grades
     ss['grade_submit'] = True
     st.rerun()
@@ -82,6 +84,11 @@ def latin_honor_toast():
 st.sidebar.write('')
 st.title('QPI Wrapped 📉')
 add_vertical_space(1)
+
+# Notification
+if not ss.notification:
+    st.toast('Hey there! QPI Wrapped just got updated with new features!', icon='🥳')
+    ss.notification = True
 
 # Form
 if not ss.grade_submit:
