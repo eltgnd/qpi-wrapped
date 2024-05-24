@@ -9,13 +9,14 @@ from shillelagh.backends.apsw.db import connect
 from streamlit_extras.add_vertical_space import add_vertical_space
 
 def ui_tutorial():
-    with st.expander('See how to copy-paste grades', expanded=False):
+    with st.expander('How to copy-paste grades', expanded=False):
         st.write('''1. Visit AISIS and go to `MY GRADES`.
             \n2. Select `ALL GRADES` from the dropdown and click the `DISPLAY GRADES` button.
             \n3. Copy the big table and paste it here!
         ''')
         add_vertical_space(1)
         st.success('Copying the data should include all rows and columns of the table! (See image below)', icon='✅')
+        st.image('images\copy-paste-tutorial.png')
 
 def ui_sidebar():
     with st.sidebar:

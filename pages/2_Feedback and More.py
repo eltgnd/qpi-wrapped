@@ -25,41 +25,43 @@ donation_choices = {
 }
 
 # Feedback form
+st.subheader('Help me make QPI Wrapped better! 🤝')
 if not ss.feedback:
     with st.container(border=True):
-        st.subheader('Help me make QPI Wrapped better! 🤝')
         st.button('View Feedback Form', type='primary', key='feedback_pressed', on_click=feedback_pressed)
 else:
     html_str = """
             <!DOCTYPE html> 
     <html> 
     <body> 
-        <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSdvKIGvBq-oqejFHxahYDHR0HSCwpULB4x6P4SG2BbHGWwvaQ/viewform?embedded=true" width="640" height="928" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
+        <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSdvKIGvBq-oqejFHxahYDHR0HSCwpULB4x6P4SG2BbHGWwvaQ/viewform?embedded=true" width="640" height="600" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
     </body> 
     </html> 
     """
     st.markdown(html_str, unsafe_allow_html=True)
-    st.link_button(label='Click here if you can\'t access the form above.', url='https://forms.gle/wdLjZdnYx3UHUukn7', type='primary')
+    st.link_button('Click here if you cannot see the Google form above', 'https://forms.gle/Pn4RwYMYHEE1GyeJ6')
 
-st.divider()
+add_vertical_space(1)
 
 # Announcement
-st.header('QPI Wrapped will accomodate more universities soon. 🤓')
+st.subheader('QPI Wrapped will accomodate more universities soon!')
 with st.container(border=True):
     st.write('What\'s next? 👀') 
     st.write('Right now, QPI Wrapped is only for AdMU students. To make the app more accessible, I\'m planning to expand it to accomodate other universities\' grades! If you\'re interested to include your school, please contact me at https://facebook.com/eltgnd!')
 
-st.divider()
+add_vertical_space(1)
 
 # Donate
-st.header('Buy me iced coffee! ☕')
-
-with st.container(border=True): 
-    st.write('QPI Wrapped is free forever to use. If you\'d like to support my work, you can leave a tip via GCash!')
-    choice = st.radio('Choose an amount', ['PHP 50', 'PHP 100', 'Other amount'])
-    donate = st.button('Leave a tip')
-if donate:
-    st.balloons()
-    st.toast('Thank you so much!', icon='💙')
-    st.image(donation_choices[choice])
+st.subheader('Buy me iced coffee? ☕')
+col1, col2 = st.columns(2, gap='small')
+with col1:
+    with st.container(border=True): 
+        st.write('QPI Wrapped is free forever to use. If you\'d like to support my work, you can leave a tip via GCash! 🥳')
+        donate = st.button('I left a tip!')
+    if donate:
+        st.balloons()
+        st.toast('Thank you so much!', icon='💙')
+        st.image(donation_choices[choice])
+with col2:
+    st.image('images\gcash.jpg')
 

@@ -17,6 +17,7 @@ from grades import Grades, honors_dict
 from ui import *
 from sample_data import sample_data
 from gauge import plot_gauge
+from scholarship_retainment import scholarships
 
 # Variables
 grades_color_map = {
@@ -346,21 +347,23 @@ else:
 
     # Row idk
     st.caption('QPI RETAINMENT')
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3 = st.columns([2,2.25,3])
+    year_level = grades.get_year_level()
     with col1:
+        val = '✅' if grades.yearly_qpi() >= ls_retainment[year_level][1] else '⚠️'
         with st.container(border=True):
-            year_level = grades.get_year_level()
-            st.metric(f'Current yearly QPI', grades.yearly_qpi())
-            add_vertical_space(1)
+            st.metric(f'Current Yearly QPI', f'{grades.yearly_qpi()}  {val}')
     with col2:
         with st.container(border=True):
-            year_level = grades.get_year_level()
             st.metric(f'{ls_retainment[year_level][0]} Retainment', ls_retainment[year_level][1])
-            add_vertical_space(1)
     with col3:
         with st.container(border=True):
-            st.caption('RETAINMENT SOURCE')
-            st.write('Data is based from the 2023 Student Handbook.')
+            st.metric('Scholarship Retainment','Coming soon!')
+    
+    with st.container(border=True):
+        st.selectbox('Scholarship Retainment',scholarships.keys())
+
+
 
 
     if st.session_state.remaining_units:
@@ -460,7 +463,7 @@ else:
 
     # No sidebar input
     else:
-        add_vertical_space(1)
+        st.divider()
         st.info('Unlock more analysis by using the **MORE TOOLS** section on the sidebar!')
 
     # Row 6
