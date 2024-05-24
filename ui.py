@@ -8,6 +8,9 @@ import plotly.graph_objects as go
 from shillelagh.backends.apsw.db import connect
 from streamlit_extras.add_vertical_space import add_vertical_space
 
+# Imported files
+from scholarship_retainment import scholarships
+
 def ui_tutorial():
     with st.expander('How to copy-paste grades', expanded=False):
         st.write('''1. Visit AISIS and go to `MY GRADES`.
@@ -34,3 +37,10 @@ def ui_sidebar():
             st.markdown("""<a href="https://www.instagram.com/eltgnd_v/">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Instagram_logo_2016.svg/2048px-Instagram_logo_2016.svg.png" 
                 width="30" height="30"></a>""", unsafe_allow_html=True)
+
+def render_semester_retainment(semester, chosen, year_level):
+    # Intersession
+    if semester == '0':
+        retainment = scholarships[chosen][year_level]['Intersession']
+        if isinstance(retainment, float):
+            pass

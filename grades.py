@@ -77,11 +77,25 @@ class Grades:
         new_df = df[df['Semester'] == sem].copy()
         return self.compute_qpi(new_df)    
 
-    def yearly_qpi(self):
+    def yearly_qpi(self, school_year):
         df = self.df
-        latest_school_year = self.last_sem[:-2]
-        new_df = df[df['Semester'].str.startswith(latest_school_year)]
-        return self.compute_qpi(new_df)
+        new_df = df[df['Semester'].str.startswith(school_year)]
+        return self.compute_qpi(new_df)   
+
+    def latest_yearly_qpi(self):
+        return self.yearly_qpi(self.last_sem[:-2])
+
+    def all_yearly_qpi(self, return_as_df=False):
+        df = self.df
+        semesters = df['Semester'].str[:-2].unique()
+        yearly_qpi_dict = {}
+        for i in semesters:
+            yearly_qpi_dict[i] = self.yearly_qpi(i)
+        yearly_df = pd.DataFrame({
+            'School Year':yearly_qpi_dict.keys(),
+            'QPI':yearly_qpi_dict.values()
+        })
+        return yearly_df if return_as_df else yearly_qpi_dict
 
     def latest_qpi(self):
         return self.semester_qpi(self.last_sem)
@@ -195,3 +209,11 @@ class Grades:
         df = self.df
         df['School Year'] = df['Semester'].str[:-2]
         return df['School Year'].nunique()
+
+    def adjust_school_year(self, school_year, c):
+        start,end = map(int, school_year.split('-'))
+        return f'{start+c}-{end+c}'
+
+    def get_total_letters(self, letter):
+        df = self.df
+        return df[df['Final Grade'] == letter].shape[0]

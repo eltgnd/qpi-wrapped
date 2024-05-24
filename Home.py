@@ -55,9 +55,13 @@ ls_retainment = {
 
 # Input variables
 input_vars = {
+    'option':False,
     'grade_submit':False,
     'latin_honor_toast':False,
     'submit':False,
+    'scholar':False,
+    'duration':None,
+    'scholarship_type':'Academic'
     }
 for key,val in input_vars.items():
     if key not in ss:
@@ -174,15 +178,27 @@ else:
     st.caption('QPI TREND')
 
     with st.container(border=True):
-        option = st.toggle('Exclude Intersession QPI')
-        fig = px.line(grades.qpi_by_semester(option), x='Semester', y='QPI', 
-            title='QPI by Semester',
-            markers=True,
-            text='QPI',
-            height=300)
-        fig.update_traces(textposition="top center")
-        fig.update_layout(margin=dict(l=30, r=30, t=50, b=20))
-        st.plotly_chart(fig, use_container_width=True)
+        sem,year = st.tabs(['By Semester', 'By School Year'])
+        with sem:
+            fig = px.line(grades.qpi_by_semester(ss.option), x='Semester', y='QPI', 
+                title='QPI by Semester',
+                markers=True,
+                text='QPI',
+                height=300)
+            fig.update_traces(textposition="top center")
+            fig.update_layout(margin=dict(l=30, r=30, t=50, b=20))
+            st.plotly_chart(fig, use_container_width=True)
+            st.toggle('Exclude Intersession QPI', key='option')
+        with year:
+            yearly_qpis = grades.all_yearly_qpi(return_as_df=True)
+            fig = px.line(yearly_qpis,x='School Year', y='QPI', 
+                title='QPI by School Year',
+                markers=True,
+                text='QPI',
+                height=300)
+            fig.update_traces(textposition="top center")
+            fig.update_layout(margin=dict(l=30, r=30, t=50, b=20))
+            st.plotly_chart(fig, use_container_width=True)
 
     add_vertical_space(1)
 
@@ -346,25 +362,88 @@ else:
     add_vertical_space(1)
 
     # Row idk
-    st.caption('QPI RETAINMENT')
-    col1, col2, col3 = st.columns([2,2.25,3])
+    st.caption('YEARLY QPI RETAINMENT')
+    col1, col2 = st.columns([2,4.5])
     year_level = grades.get_year_level()
+    yearly_qpis = grades.all_yearly_qpi()
     with col1:
-        val = '✅' if grades.yearly_qpi() >= ls_retainment[year_level][1] else '⚠️'
+        val = '✅' if grades.latest_yearly_qpi() >= ls_retainment[year_level][1] else '⚠️'
         with st.container(border=True):
-            st.metric(f'Current Yearly QPI', f'{grades.yearly_qpi()}  {val}')
+            previous_school_year = None if year_level == 1 else grades.adjust_school_year(grades.last_sem[:-2], -1)
+            yearly_delta = round(grades.latest_yearly_qpi() - grades.yearly_qpi(previous_school_year),3)
+            st.metric(f'Current Yearly QPI', f'{grades.latest_yearly_qpi()}  {val}', delta=f"{yearly_delta} points")
+        with st.container(border=True):
+            st.metric(f'{ls_retainment[year_level][0]} Retainment', float(ls_retainment[year_level][1]))
+        with st.container(border=True):
+            st.toggle('View Scholars\' Retainment', key='scholar')
     with col2:
         with st.container(border=True):
-            st.metric(f'{ls_retainment[year_level][0]} Retainment', ls_retainment[year_level][1])
-    with col3:
-        with st.container(border=True):
-            st.metric('Scholarship Retainment','Coming soon!')
-    
-    with st.container(border=True):
-        st.selectbox('Scholarship Retainment',scholarships.keys())
+            df = pd.DataFrame({
+                'School Year': yearly_qpis.keys(),
+                'Yearly QPI': yearly_qpis.values(),
+                'Retainment QPI': [ls_retainment[i][-1] for i in range(1,year_level+1)]
+            })
+            fig = px.bar(df, x='School Year', y=['Yearly QPI', 'Retainment QPI'],
+                title='Yearly QPI vs Retainment QPI per School Year',
+                height=305,
+                barmode='group')
+            fig.update_layout(margin=dict(l=35, r=35, t=40, b=10))
+            st.plotly_chart(fig, use_container_width=True)
+
+    add_vertical_space(1)
+
+    # Row idk 2
+    if ss.scholar:
+        st.caption("SCHOLARS' QPI RETAINMENT")
+        if ss.duration == 'By Year':
+            # Check if there is letter grade retainment requirement
+            chosen_scholarship = scholarships[ss.scholarship_type]
+            has_letter_grade_retainment = False
+            if isinstance(chosen_scholarship[year_level]['Yearly'], list):
+                has_letter_grade_retainment = True
+
+            col1, col2 = st.columns([4, 1 if has_letter_grade_retainment else 0.01])
+            with col1: 
+                with st.container(border=True):
+                    retainment = [chosen_scholarship[year]['Yearly'] if isinstance(chosen_scholarship[year]['Yearly'], float) else chosen_scholarship[year]['Yearly'][-1] for year in range(1, year_level+1)]
+                    df = pd.DataFrame({
+                        'School Year': yearly_qpis.keys(),
+                        'Yearly QPI': yearly_qpis.values(),
+                        'Retainment QPI': retainment
+                    })
+                    fig = px.bar(df, x='School Year', y=['Yearly QPI', 'Retainment QPI'],
+                        title='Yearly QPI vs Scholar\'s Retainment QPI per School Year',
+                        height=305,
+                        barmode='group')
+                    fig.update_layout(margin=dict(l=35, r=35, t=40, b=10))
+                    st.plotly_chart(fig, use_container_width=True)
+
+            if has_letter_grade_retainment:
+                letters = chosen_scholarship[year_level]['Yearly'][0]
+                with col2:
+                    for letter in letters.keys():
+                        with st.container(border=True):
+                            st.metric(f'Total **{letter}**s', grades.get_total_letters(letter))
+
+        if ss.duration == 'Current Semester':
+            st.info('Currently under development!')
+            # render_semester_retainment(grades.last_sem[-1], ss.scholarship_type, year_level)
+
+        col1, col2, col3 = st.columns([2,2,2])
+        with col1:
+            with st.container(border=True):
+                st.selectbox('Scholarship Type',scholarships.keys(), key='scholarship_type')
+        with col2:
+            with st.container(border=True):
+                st.radio('Retainment Duration', ['Current Semester','By Year'], index=None, key='duration')
+        with col3:
+            with st.container(border=True):
+                st.caption('Retainment data is based from the OAA Scholars\' Hub as of 5/24/2024.')
 
 
 
+
+    add_vertical_space(1)
 
     if st.session_state.remaining_units:
         remaining = st.session_state.remaining_units
