@@ -57,7 +57,7 @@ col1, col2 = st.columns(2, gap='small')
 with col1:
     with st.container(border=True): 
         st.write('QPI Wrapped is free forever to use. If you\'d like to support my work, you can leave a tip via GCash! 🥳')
-        donate = st.button('I left a tip!')
+        donate = st.button('Buy Val coffee', type='primary')
 if donate:
     st.balloons()
     st.toast('Thank you so much!', icon='💙')
