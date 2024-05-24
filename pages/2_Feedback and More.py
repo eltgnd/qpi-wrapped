@@ -62,5 +62,5 @@ if donate:
     st.balloons()
     st.toast('Thank you so much!', icon='💙')
     with col2:
-        st.image('images\gcash.jpg')
+        st.image('images/gcash.jpg')
 

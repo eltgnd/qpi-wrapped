@@ -21,4 +21,4 @@ with col1:
 with col2:
     add_vertical_space(1)
     with st.container(border=True):
-        st.image('images\photo.jpg')
+        st.image('images/photo.jpg')

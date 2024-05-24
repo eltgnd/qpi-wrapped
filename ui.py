@@ -19,7 +19,7 @@ def ui_tutorial():
         ''')
         add_vertical_space(1)
         st.success('Copying the data should include all rows and columns of the table! (See image below)', icon='✅')
-        st.image('images\copy-paste-tutorial.png')
+        st.image('images/copy-paste-tutorial.png')
 
 def ui_sidebar():
     with st.sidebar:
