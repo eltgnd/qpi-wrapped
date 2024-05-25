@@ -44,9 +44,8 @@ else:
 add_vertical_space(1)
 
 # Announcement
-st.subheader('QPI Wrapped+ is coming soon!')
+st.subheader('QPI Wrapped+ is coming soon! 🥳')
 with st.container(border=True):
-    st.write('What\'s next? 👀') 
     st.write('Right now, QPI Wrapped is only for AdMU students. To make the app more accessible, I\'m planning to make a "general" version that would work for most universities. Although, this would have less charts and features. If you have any suggestions, feel free to answer the feedback form!')
 
 add_vertical_space(1)

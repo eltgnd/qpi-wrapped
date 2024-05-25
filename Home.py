@@ -442,7 +442,7 @@ else:
                 st.selectbox('Scholarship Type',scholarships.keys(), key='scholarship_type')
         with col2:
             with st.container(border=True):
-                st.radio('Retainment Duration', ['Current Semester','By Year'], index=None, key='duration')
+                st.radio('Retainment Duration', ['By Year','Current Semester'], index=None, key='duration')
         with col3:
             with st.container(border=True):
                 st.caption('Retainment data is based from the OAA Scholars\' Hub as of 5/24/2024.')

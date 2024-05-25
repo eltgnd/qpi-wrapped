@@ -11,7 +11,7 @@ with st.sidebar:
 
 # Header
 # image here
-col1, col2 = st.columns([0.46,0.55], gap='medium')
+col1, col2 = st.columns([0.5,0.55], gap='medium')
 with col1:
     add_vertical_space(1)
     st.caption('ABOUT ME')
