@@ -159,7 +159,7 @@ else:
 
         ui_sidebar()
 
-    # Dashboard
+    ### Start of Dashboard
 
     # Row 1
     st.caption('QPI AT A GLANCE')
@@ -178,6 +178,20 @@ else:
         if grades.dean_list():
             with st.container(border=True):
                 st.metric(label='Dean\'s Lister Award 🎉', value=grades.dean_list(), delta='Congratulations!', delta_color='normal')
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        with st.container(border=True):      
+            highest_qpi = grades.qpi_by_semester(True).sort_values(by='QPI', ascending=False).iloc[0]
+            st.metric(label=f'Maximum QPI *({highest_qpi.Semester})*', value=f'{highest_qpi.QPI}💪')
+    with col2:
+        with st.container(border=True):      
+            lowest_qpi = grades.qpi_by_semester(True).sort_values(by='QPI', ascending=True).iloc[0]
+            st.metric(label=f'Minimum QPI *({lowest_qpi.Semester})*', value=f'{lowest_qpi.QPI}🪴')
+    with col3:
+        with st.container(border=True):     
+            highest_units = grades.group_by_units().sort_values(by='Units', ascending=False).iloc[0]
+            st.metric(label=f'Max Units Taken *({highest_units.Semester})*', value=f'{highest_units.Units} units 📋')
 
     add_vertical_space(1)
 
@@ -270,14 +284,14 @@ else:
 
     # Row 4
     st.caption('LETTER GRADE TREND')
-    df = grades.letter_trend(['A', 'B+'])
-    semester_count = df['Semester'].nunique()
     with st.container(border=True):
+        semester_count = grades.df['Semester'].nunique()
         col1, col2 = st.columns([3,1])
-        col1.multiselect('Select letter grade/s', grades_color_map.keys(), default=['A', 'B+', 'B'])
+        letters = col1.multiselect('Select letter grade/s', grades_color_map.keys(), default=['A', 'B+', 'B'])
         col2.write('\n')
         stack = col2.toggle('Stack bars', value=semester_count>9)
     with st.container(border=True):
+        df = grades.letter_trend(letters)
         fig = px.bar(df, x='Semester', y='Count',
             color='Final Grade',
             title='Letter Grade Trend',
@@ -291,84 +305,58 @@ else:
 
     # Row 5
     st.caption('QPI CORRELATION')
-    col1, col2 = st.columns([0.65,0.35])
-    if 'find_out' not in st.session_state:
-        st.session_state.find_out = False
-
+    with st.container(border=True):
+        st.write('🤔 Let\'s find out if there\'s a correlation between your QPI and the number of units you\'ve taken!')
+    col1, col2 = st.columns([0.8,0.2])
     with col1:
         with st.container(border=True):
-            guess_options = [ "I\'m not sure 😴", "I think so👍", "I don't think so 👎"]
-            st.radio('**Fun Question**: Based only on this data, do you think your QPI correlates with the number of units you take each semester?', guess_options, key='guess')
-            add_vertical_space(1)
-            find_out = st.button('I want to find out', type='primary', on_click=find_out_button)
+            df = grades.qpi_vs_units()
+
+            fig = go.Figure(layout_title_text="QPI vs Units")
+            fig.add_trace(go.Scatter(x=df.Units, y=df.QPI, 
+                name='QPI vs Units',
+                text=df.QPI,
+                mode='markers+text',
+                marker=dict(color='royalblue', size=10)
+                )
+            )
+
+            # Linear regression
+            model = np.polyfit(df.Units, df.QPI, 1)
+            mn, mx = df.Units.min(), df.Units.max()
+            x_line = [i for i in range(mn,mx+1,1)]
+            y_line = [(model[0]*x + model[1]) for x in x_line]
+
+            fig.add_trace(go.Scatter(x=x_line, y=y_line,
+                name='Best fit line',
+                line=dict(color='royalblue', width=1, dash='dot'),
+                mode='lines'
+                )
+            )
+            fig.update_traces(textposition="top center")
+            fig.update_layout(legend=dict(
+                orientation='h',yanchor="top",y=-0.35,xanchor="left",x=-0.1), 
+                margin=dict(l=30, r=30, t=60, b=20),
+                height=300
+            )
+            st.plotly_chart(fig, use_container_width=True)
     with col2:
-        with st.container(border=True):      
-            highest_qpi = grades.qpi_by_semester(True).sort_values(by='QPI', ascending=False).iloc[0]
-            st.metric(label=f'Highest QPI *({highest_qpi.Semester})*', value=f'{highest_qpi.QPI}🪴')
-        with st.container(border=True):     
-            highest_units = grades.group_by_units().sort_values(by='Units', ascending=False).iloc[0]
-            st.metric(label=f'Highest Units taken *({highest_units.Semester})*', value=f'{highest_units.Units} units 📋')
-
-    if st.session_state.find_out:
-        col1, col2 = st.columns([0.8,0.2])
-        with col1:
-            with st.container(border=True):
-                df = grades.qpi_vs_units()
-
-                fig = go.Figure(layout_title_text="QPI vs Units")
-                fig.add_trace(go.Scatter(x=df.Units, y=df.QPI, 
-                    name='QPI vs Units',
-                    text=df.QPI,
-                    mode='markers+text',
-                    marker=dict(color='skyblue', size=10)
-                    )
-                )
-
-                # Linear regression
-                model = np.polyfit(df.Units, df.QPI, 1)
-                mn, mx = df.Units.min(), df.Units.max()
-                x_line = [i for i in range(mn,mx+1,1)]
-                y_line = [(model[0]*x + model[1]) for x in x_line]
-
-                fig.add_trace(go.Scatter(x=x_line, y=y_line,
-                    name='Best fit line',
-                    line=dict(color='skyblue', width=1, dash='dot'),
-                    mode='lines'
-                    )
-                )
-                fig.update_traces(textposition="top center")
-                fig.update_layout(legend=dict(
-                    orientation='h',yanchor="top",y=-0.35,xanchor="left",x=-0.1), 
-                    margin=dict(l=30, r=30, t=60, b=20),
-                    height=300
-                )
-                st.plotly_chart(fig, use_container_width=True)
-        with col2:
-            with st.container(border=True):
-                orig_corr = round(df['Units'].corr(df['QPI'], method='pearson'),2)
-                corr = abs(round(df['Units'].corr(df['QPI'], method='pearson'),2))
-                label = ''
-                for val, scale in correlation_scales.items():
-                    if scale[0] <= corr <= scale[1]:
-                        label = val
-                        break
-                st.metric(label='Correlation\n\ncoefficient (r)', value=orig_corr, delta=label, delta_color='normal' if val != 'Moderate' else 'off')
-            with st.container(border=True):
-                st.write(f'What does *r* ({orig_corr}) mean?')
-                st.caption("r quantifies the linear strength from -1 (inverse) to 1 (direct).")
-            if corr >= correlation_scales['Strong'][0]:
-                correct_guess = guess_options[1]
-            elif corr <= correlation_scales['-Weak'][-1]:
-                correct_guess = guess_options[2]
-            else:
-                correct_guess = 0
-            if st.session_state.guess != guess_options[0]:
-                text = 'right' if st.session_state.guess == correct_guess else 'wrong'
-                st.toast(f"You got the fun question {text}!", icon='😳')
+        with st.container(border=True):
+            orig_corr = round(df['Units'].corr(df['QPI'], method='pearson'),2)
+            corr = abs(round(df['Units'].corr(df['QPI'], method='pearson'),2))
+            label = ''
+            for val, scale in correlation_scales.items():
+                if scale[0] <= corr <= scale[1]:
+                    label = val
+                    break
+            st.metric(label='Correlation\n\ncoefficient (r)', value=orig_corr, delta=label, delta_color='normal' if val != 'Moderate' else 'off')
+        with st.container(border=True):
+            st.write(f'What does *r* ({orig_corr}) mean?')
+            st.caption("r quantifies the linear strength from -1 (inverse) to 1 (direct).")
 
     add_vertical_space(1)
 
-    # Row idk
+    # Row 6
     st.caption('YEARLY QPI RETAINMENT')
     col1, col2 = st.columns([2,4.5])
     year_level = grades.get_year_level()
@@ -399,7 +387,7 @@ else:
 
     add_vertical_space(1)
 
-    # Row idk 2
+    # Row 7
     if ss.scholar:
         st.caption("SCHOLARS' QPI RETAINMENT")
         if ss.duration == 'By Year':
@@ -447,14 +435,11 @@ else:
             with st.container(border=True):
                 st.caption('Retainment data is based from the OAA Scholars\' Hub as of 5/24/2024.')
 
-
-
-
     add_vertical_space(1)
 
     if st.session_state.remaining_units:
         remaining = st.session_state.remaining_units
-        # Row 4
+        # Row 8
         st.caption('LATIN HONORS')
 
         col1, col2, col3 = st.columns([0.2, 0.45, 0.35])
@@ -482,7 +467,7 @@ else:
 
         add_vertical_space(1)
 
-        # Row 5
+        # Row 9
         st.caption('ESTIMATING CHANCES')
         with st.expander('Realistically, it is hard to get *A*s on **all** remaining courses. Want to estimate your chances better?', expanded=False):
             st.write(':grey[Let\'s estimate your performance on your **remaining courses**. Choose between estimating by percentage (aproximate) or by number of units (precise).]')
@@ -552,7 +537,7 @@ else:
         st.divider()
         st.info('Unlock more analysis by using the **MORE TOOLS** section on the sidebar!')
 
-    # Row 6
+    # Row 10
     if st.session_state.courses:
         st.caption('QPI ANALYSIS')
 

@@ -22,12 +22,22 @@ st.write('*May 25, 2024*')
 st.write("""
 - Fixed clunky user input. Proper reference of session states
 - Disable analyze grades button when missing data is detected
+- Added more metrics on QPI at a glance section
 - Added a 'By School Year' tab on QPI Trend section
 - Added a 'Letter Grade Trend' section, automatically stacks bars when grades have too many semesters
 - Added a 'Yearly QPI Retainment' section
 - Added a 'Yearly QPI Retainment' section for scholars. Still under development for 'Current Semester' option
+- Removed the "Fun Question" section, just show QPI Correlation immediately
 - Updated feedback form to be more concise
 - Updated About me page
 - Created an Update Log page
 """)
 
+st.divider()
+
+# Plans for third update
+st.subheader('🛠️ Plans for QPI Wrapped 2.0')
+st.write("""
+- Develop a working prototype of QPI Wrapped+
+- Finish the scholars' QPI Retainment option
+""")

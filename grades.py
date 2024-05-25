@@ -134,7 +134,8 @@ class Grades:
     def letter_trend(self, letters):
         df = self.df
         new_df = df.groupby(['Semester', 'Final Grade']).size().reset_index(name='Count')
-        return new_df
+        mask = new_df['Final Grade'].isin(letters)
+        return new_df[mask]
         
     def qpi_by_course(self, minimum_courses=2):
         df = self.df
