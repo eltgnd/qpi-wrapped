@@ -7,10 +7,20 @@ import numpy as np
 import plotly.graph_objects as go
 from shillelagh.backends.apsw.db import connect
 from streamlit_extras.add_vertical_space import add_vertical_space
+from st_pages import Page, show_pages
 
 # Initialize
-st.set_page_config(page_title='Your QPI Wrapped', page_icon='📉', layout="centered", initial_sidebar_state="auto", menu_items=None)
+st.set_page_config(page_title='QPI Wrapped', page_icon='📉', layout="centered", initial_sidebar_state="auto", menu_items=None)
 ss = st.session_state
+
+show_pages(
+    [
+        Page("Home.py", "Dashboard", ":house:"),
+        Page("pages/2_Feedback and More.py", "Feedback and More", ":blue_heart:"),
+        Page('pages/3_Update Log.py', 'Update Log', ':scroll:'),
+        Page('pages/4_About Me.py', 'About Me', ':boy:')
+    ]
+)
 
 # Imported files
 from grades import Grades, honors_dict
@@ -462,7 +472,8 @@ else:
 
                 st.metric(label=f'{st.session_state.check_eligibility} is...', value=eligibility_text, help="Highest attainable QPI assumes an **'A'** in all remaining courses.")
                 if highest_possible >= honors_dict[honor][0]:
-                    st.caption(f'To do this, get a minimum QPI of {minimum_required} on your remaining {remaining} units.')
+                    if minimum_required > 0:
+                        st.caption(f'To do this, get a minimum QPI of {minimum_required} on your remaining {remaining} units.')
                 st.write(f'Highest attainable QPI: {highest_possible}\nHonor range: {honors_dict[honor][0]} to {honors_dict[honor][-1]}')
 
         add_vertical_space(1)
@@ -535,7 +546,7 @@ else:
     # No sidebar input
     else:
         st.divider()
-        st.info('Unlock more analysis by using the **MORE TOOLS** section on the sidebar!')
+        st.info('Unlock more analysis by using the **MORE TOOLS** section on the sidebar! The app will refresh and show the analysis once you input your data.')
 
     # Row 10
     if st.session_state.courses:

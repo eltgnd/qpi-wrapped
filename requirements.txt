@@ -5,3 +5,4 @@ pandas
 plotly
 shillelagh
 google-auth
+st-pages
