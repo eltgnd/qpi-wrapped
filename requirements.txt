@@ -5,4 +5,4 @@ pandas
 plotly
 shillelagh
 google-auth
-st-pages
+st-pages==0.4.1
