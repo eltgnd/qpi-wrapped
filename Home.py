@@ -7,20 +7,20 @@ import numpy as np
 import plotly.graph_objects as go
 from shillelagh.backends.apsw.db import connect
 from streamlit_extras.add_vertical_space import add_vertical_space
-from st_pages import Page, show_pages
+# from st_pages import Page, show_pages
 
 # Initialize
 st.set_page_config(page_title='QPI Wrapped', page_icon='📉', layout="centered", initial_sidebar_state="auto", menu_items=None)
 ss = st.session_state
 
-show_pages(
-    [
-        Page("Home.py", "Dashboard", ":house:"),
-        Page("pages/2_Feedback and More.py", "Feedback and More", ":blue_heart:"),
-        Page('pages/3_Update Log.py', 'Update Log', ':scroll:'),
-        Page('pages/4_About Me.py', 'About Me', ':boy:')
-    ]
-)
+# show_pages(
+#     [
+#         Page("Home.py", "Dashboard", ":house:"),
+#         Page("pages/2_Feedback and More.py", "Feedback and More", ":blue_heart:"),
+#         Page('pages/3_Update Log.py', 'Update Log', ':scroll:'),
+#         Page('pages/4_About Me.py', 'About Me', ':boy:')
+#     ]
+# )
 
 # Imported files
 from grades import Grades, honors_dict
