@@ -60,10 +60,10 @@ scholarships = {
         4: {"Intersession": {'F':0, 'W':0}, "Semestral": {'F':0, 'W':0}, "Yearly": 2.5},
     },
     "Security Bank Scholarship": {
-        1: {"Intersession": {'F':0, 'W':0}, "Semestral": {'F':0, 'W':0}, "Yearly": 2.5},
-        2: {"Intersession": {'F':0, 'W':0}, "Semestral": {'F':0, 'W':0}, "Yearly": 2.5},
-        3: {"Intersession": {'F':0, 'W':0}, "Semestral": {'F':0, 'W':0}, "Yearly": 2.5},
-        4: {"Intersession": {'F':0, 'W':0}, "Semestral": {'F':0, 'W':0}, "Yearly": 2.5},
+        1: {"Intersession": 3.00, "Semestral": 3.00, "Yearly": 3.00},
+        2: {"Intersession": 3.00, "Semestral": 3.00, "Yearly": 3.00},
+        3: {"Intersession": 3.00, "Semestral": 3.00, "Yearly": 3.00},
+        4: {"Intersession": 3.00, "Semestral": 3.00, "Yearly": 3.00},
     },
     "Aboitiz College Scholarship Program": {
         1: {"Intersession": 3.00, "Semestral": 3.00, "Yearly": 3.00},
