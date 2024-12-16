@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 
+pd.options.mode.copy_on_write = True
+
 not_part_of_qpi = ['PHYED', 'NSTP', 'MATH 1.1', 'MATH 1.2', 'ENGL 9', 'ENGL 10', 'ENGL 10.1', 'FILI 10']
 letters = {'A':4.00, 'B+':3.50, 'B':3.00, 'C+':2.50, 'C':2.00, 'D':1.00, 'F':0.00, 'W':0.00}
 honors_dict = {

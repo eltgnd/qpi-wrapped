@@ -29,7 +29,7 @@ def plot_gauge(
     )
     fig.update_layout(
         # paper_bgcolor="lightgrey",
-        height=198,
+        height=215,
         margin=dict(l=25, r=25, t=50, b=0),
     )
     st.plotly_chart(fig, use_container_width=True)
