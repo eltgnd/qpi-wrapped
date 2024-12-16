@@ -35,9 +35,18 @@ st.write("""
 
 st.divider()
 
-# Plans for third update
-st.subheader('🛠️ Plans for QPI Wrapped 2.0')
+# Third update
+st.subheader('3️⃣ QPI Wrapped 2.0')
+st.write('*December 16, 2024*')
 st.write("""
-- Develop a working prototype of QPI Wrapped+
-- Finish the scholars' QPI Retainment option
+- Changed layout to pill-buttons for navigating different sections
+- Changed layout of 'Feedback and More' section
+- Added 
 """)
+
+# # Plans for third update
+# st.subheader('🛠️ Plans for QPI Wrapped 2.0')
+# st.write("""
+# - Develop a working prototype of QPI Wrapped+
+# - Finish the scholars' QPI Retainment option
+# """)

@@ -41,17 +41,11 @@ grades_color_map = {
 }
 
 correlation_scales = {
-    '-Very Weak': (0.0, 0.19),
-    '-Weak': (0.2, 0.39),
+    'Very Weak': (0.0, 0.19),
+    'Weak': (0.2, 0.39),
     'Moderate': (0.4, 0.59),
     'Strong': (0.6, 0.79),
     'Very High': (0.8, 1.0)
-}
-
-donation_choices = {
-    'PHP 50':'https://scontent.xx.fbcdn.net/v/t1.15752-9/413185299_313428951057664_6475839568897633274_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=510075&_nc_eui2=AeGWfR0iSFoIUR-gyr75FYQHIncde6cGYg0idx17pwZiDQ3VOIq8VZOJsgoH1TRb07DG4IMQ1LLcfEArjeWRzvlN&_nc_ohc=IVPDyqN5DD4AX8i948P&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&cb_e2o_trans=q&oh=03_AdRPKVGSmoV7ALd89jKwzIUnz7r160n_rxUxoqlmCxr79w&oe=65C4A98F',
-    'PHP 100':'https://scontent.xx.fbcdn.net/v/t1.15752-9/413898045_1371548693482521_6834946516334489008_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=510075&_nc_eui2=AeEHibqWTLk5_3qwt2ffN_xJP7EQzTlPD6o_sRDNOU8PqlcAHvvZwCNj2Og7V5NJPgoIluUveEcrIuHwut6P04co&_nc_ohc=Fuy6MxZkXx4AX8bPjIh&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&cb_e2o_trans=q&oh=03_AdRot2gUXnxpNbtbOCD69nyF19KZqzfGlPn0BZhpt57uXw&oe=65C48885',
-    'Other amount':'https://scontent.xx.fbcdn.net/v/t1.15752-9/414154292_331338256473546_3364700846078338076_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=510075&_nc_eui2=AeG9Ct9kEKIM5v-5B9DPDUyl46Z1FWeCfSfjpnUVZ4J9JzeQgAPFvjjshSPjWWMhZ4HQJZLw0QliXcd2Rkmt2uMT&_nc_ohc=hlUmFItLL9QAX9c5A1L&_nc_ad=z-m&_nc_cid=0&_nc_ht=scontent.xx&cb_e2o_trans=q&oh=03_AdQlaW47yGUt1lB5nIMarFVVbMHhh6cnf1OeEtg8CK_qMQ&oe=65C49F70'
 }
 
 ls_retainment = {
@@ -72,7 +66,8 @@ input_vars = {
     'scholar':False,
     'duration':None,
     'scholarship_type':'Academic',
-    'notification':False
+    'notification':False,
+    'compare':False
     }
 
 for key,val in input_vars.items():
@@ -149,7 +144,7 @@ else:
 
     ### Start of Dashboard
 
-    options = ['SUMMARY', 'TRENDS', 'ANALYSIS', 'LATIN HONORS', 'RETAINMENT']
+    options = ['SUMMARY', 'TRENDS', 'RETAINMENT', 'INVESTIGATE', 'LATIN HONORS', 'ANALYSIS', 'PREDICT']
     st.pills('', options, default='SUMMARY', key='tab')
     add_vertical_space(1)
 
@@ -300,18 +295,16 @@ else:
         add_vertical_space(1)
 
 
-    if ss.tab == 'ANALYSIS':
-
-        # Summarize course
+    if ss.tab == 'INVESTIGATE':
         st.write('\n')
-        st.write('**🤔 Grade Analysis by Course**')
-        qpi_temp = grades.compute_qpi(grades.df)
+        st.caption('GRADE ANALYSIS')
         course_choices = grades.qpi_by_course(minimum_courses=1).sort_values(by='Subjects', ascending=False).reset_index()['Course']
         st.multiselect('Select at least one class code!', options=course_choices, key='courses', placeholder=course_choices[0])
 
-    # Row 10
-        if st.session_state.courses:
-            st.caption('QPI ANALYSIS')
+        add_vertical_space(1)
+
+        # Row 10
+        if ss.courses:
 
             if 'show_qpi' not in st.session_state:
                 st.session_state.show_qpi = False
@@ -326,26 +319,60 @@ else:
                     height=300,
                 )
                 if st.session_state.show_qpi:
-                    fig.add_hline(y=qpi, line_width=1, line_color='snow',
+                    fig.add_hline(y=qpi, line_width=2, line_color='darkblue',
                         line_dash="dot",
-                        annotation_text=f"Average Grade ({qpi})", 
-                        annotation_position="top right",
+                        annotation_text=f"Weighted Average", 
+                        annotation_position="bottom right",
                         annotation_font_size=13,
-                        annotation_font_color="snow"
+                        annotation_font_color="darkblue"
                     )
                 fig.update_layout(margin=dict(l=30, r=30, t=50, b=20))
                 st.plotly_chart(fig, use_container_width=True)
 
-                st.toggle(f"Show Weighted Average (for {', '.join(st.session_state.courses)})", key='show_qpi')
+                st.write(f'**Weighted average of selected courses**: {qpi}')
+                st.toggle(f"Show Weighted Average Line", key='show_qpi')
 
             add_vertical_space(1)
 
+        # Row 11
+        st.caption('COMPARE PERFORMANCE BETWEEN CLASS CODES')
+        st.write('You can select more than one class code per group.')
+        with st.container(border=True):
+            group_num = st.slider('Number of groups', min_value=2, max_value=len(course_choices))
+
+        with st.form(key='compare'):
+            col1, col2 = st.columns(2)
+            for i in range(group_num):
+                col1.multiselect(f'Group {i+1}', options=course_choices, placeholder=course_choices[i], key=f'group_{i}')
+            submit_compare = st.form_submit_button("Compare")
+
+        if submit_compare:
+            # Check if non-empty
+            complete = True
+            group_qpis = {}
+            for i in range(group_num):
+                if len(ss[f'group_{i}']) > 0:
+                    group_qpis[f'Group {i+1}'] = (grades.analyze_courses_qpi(ss[f'group_{i}']))
+                else:
+                    st.warning('A group has no inputted course codes. Please try again!')
+                    complete = False
+                    break
+            
+            if complete:
+                with st.container(border=True):
+                    df = pd.DataFrame({'Group':group_qpis.keys(), 'Weighted Average':group_qpis.values()})
+                    fig = px.bar(df, x='Weighted Average', y='Group',
+                        title='Weighted Average Comparison',
+                        height=332,
+                        orientation='h'
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
 
 
+    if ss.tab == 'ANALYSIS':
         # Row 5
         st.caption('QPI CORRELATION')
-        with st.container(border=True):
-            st.write('🤔 Let\'s find out if there\'s a correlation between your QPI and the number of units you\'ve taken!')
+        st.write('🤔 What\'s the correlation between your QPI and the number of units you\'ve taken?')
         col1, col2 = st.columns([0.8,0.2])
         with col1:
             with st.container(border=True):
@@ -376,7 +403,7 @@ else:
                 fig.update_layout(legend=dict(
                     orientation='h',yanchor="top",y=-0.35,xanchor="left",x=-0.1), 
                     margin=dict(l=30, r=30, t=60, b=20),
-                    height=300
+                    height=310
                 )
                 st.plotly_chart(fig, use_container_width=True)
         with col2:
@@ -388,12 +415,17 @@ else:
                     if scale[0] <= corr <= scale[1]:
                         label = val
                         break
-                st.metric(label='Correlation\n\ncoefficient (r)', value=orig_corr, delta=label, delta_color='normal' if val != 'Moderate' else 'off')
+                sign = 'inverse' if label in ['Weak', 'Very Weak'] else 'normal'
+                st.metric(label='Correlation\n\ncoefficient (r)', value=orig_corr, delta=label, delta_color=sign if label != 'Moderate' else 'off')
             with st.container(border=True):
                 st.write(f'What does *r* ({orig_corr}) mean?')
                 st.caption("r quantifies the linear strength from -1 (inverse) to 1 (direct).")
 
         add_vertical_space(1)
+
+        # Row 12
+        st.caption('QPI INFERENCE')
+
 
 
     if ss.tab == 'RETAINMENT':

@@ -25,11 +25,7 @@ donation_choices = {
 }
 
 # Feedback form
-st.subheader('Help me make QPI Wrapped better! 🤝')
-if not ss.feedback:
-    with st.container(border=True):
-        st.button('View Feedback Form', type='primary', key='feedback_pressed', on_click=feedback_pressed)
-else:
+with st.expander('Help me make QPI Wrapped better! 🤝', expanded=False):
     html_str = """
             <!DOCTYPE html> 
     <html> 
@@ -39,27 +35,24 @@ else:
     </html> 
     """
     st.markdown(html_str, unsafe_allow_html=True)
-    st.link_button('Click here if you cannot see the Google form above', 'https://forms.gle/Pn4RwYMYHEE1GyeJ6')
 
-add_vertical_space(1)
+    add_vertical_space(1)
+    st.link_button('Click here if you cannot see the Google form above', 'https://forms.gle/Pn4RwYMYHEE1GyeJ6', type='primary')
 
-# Announcement
-st.subheader('QPI Wrapped+ is coming soon! 🥳')
-with st.container(border=True):
-    st.write('Right now, QPI Wrapped is only for AdMU students. To make the app more accessible, I\'m planning to make a "general" version that would work for most universities. Although, this would have less charts and features. If you have any suggestions, feel free to answer the feedback form!')
+# # Announcement
+# st.subheader('QPI Wrapped+ is coming soon! 🥳')
+# with st.container(border=True):
+#     st.write('Right now, QPI Wrapped is only for AdMU students. To make the app more accessible, I\'m planning to make a "general" version that would work for most universities. Although, this would have less charts and features. If you have any suggestions, feel free to answer the feedback form!')
 
-add_vertical_space(1)
+# add_vertical_space(1)
 
 # Donate
-st.subheader('Buy me iced coffee? ☕')
-col1, col2 = st.columns(2, gap='small')
-with col1:
-    with st.container(border=True): 
+with st.expander('Buy me iced coffee? ☕', expanded=False):
+    col1, col2 = st.columns(2, gap='small')
+    with col1:
         st.write('QPI Wrapped is free forever to use. If you\'d like to support my work, you can leave a tip via GCash! 🥳')
-        donate = st.button('Buy Val coffee', type='primary')
-if donate:
-    st.balloons()
-    st.toast('Thank you so much!', icon='💙')
-    with col2:
+        donate = st.button('Buy me coffee', type='primary')
+    if donate:
+        st.balloons()
+        st.toast('Thank you so much!', icon='💙')
         st.image('images/gcash.jpg')
-
