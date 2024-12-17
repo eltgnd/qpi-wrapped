@@ -5,8 +5,9 @@ import plotly.express as px
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
-from shillelagh.backends.apsw.db import connect
 from streamlit_extras.add_vertical_space import add_vertical_space
+from scipy import stats
+
 # from st_pages import Page, show_pages
 
 # Initialize
@@ -28,6 +29,7 @@ from ui import *
 from sample_data import sample_data
 from gauge import plot_gauge
 from scholarship_retainment import scholarships
+from graph_chi import graph_chi
 
 # Variables
 grades_color_map = {
@@ -92,7 +94,7 @@ add_vertical_space(1)
 
 # Notification
 if not ss.notification:
-    st.toast('Hey there! QPI Wrapped just got updated with new features!', icon='🥳')
+    st.toast('**December 2024 Update:** Hey there! QPI Wrapped has new features!', icon='🥳')
     ss.notification = True
 
 # Form
@@ -144,7 +146,7 @@ else:
 
     ### Start of Dashboard
 
-    options = ['SUMMARY', 'TRENDS', 'RETAINMENT', 'INVESTIGATE', 'LATIN HONORS', 'ANALYSIS', 'PREDICT']
+    options = ['SUMMARY', 'TRENDS', 'RETAINMENT', 'INVESTIGATE', 'LATIN HONORS', 'ANALYSIS']
     st.pills('', options, default='SUMMARY', key='tab')
     add_vertical_space(1)
 
@@ -424,8 +426,110 @@ else:
         add_vertical_space(1)
 
         # Row 12
-        st.caption('QPI INFERENCE')
+        st.caption('LETTER GRADE COMPARISON')
+        
+        def stat_analyze(k, test_stat, p_val, text_1, text_2):
+            sig_dif = True if p_val < 0.05 else False
 
+            st.caption('RESULTS')
+            with st.container(border=True):
+                st.write(f'**Test statistic**: {round(test_stat,4)}, **p-value**: {round(p_val,4)}')
+                if sig_dif:
+                    st.write(f'There is *a statistically significant difference* in letter grades between {text_1} you inputted. This means the grades are not likely to be the same across {text_2}, and the difference we observe is unlikely to be due to random chance.')
+                    st.info('Conclusion: We reject the null hypothesis!', icon='😳')
+                else:
+                    st.write('There is *no statistically significant difference* in letter grades between the two semesters you inputted. This means that any differences observed are likely due to random chance.')
+                    st.info('Conclusion: We fail to reject the null hypothesis!', icon='😳')
+            
+            st.caption('VISUALIZATION')
+            with st.container(border=True):
+                fig = graph_chi(k, test_stat, p_val)
+                st.plotly_chart(fig, use_container_width=True)
+
+            with st.expander('🤓 Curious about the visualization?'):
+                st.write('The visualization shows how likely different outcomes are under a chi-square distribution. The curve represents the distribution, while the green area is where we accept the null hypothesis ($H_0$), and the red area is the rejection region, where results are unlikely if ($H_0$) is true.\n\nThe point between the green and red region is the critical value—the threshold for rejecting $H_0$ at a 95% confidence level. If the test statistic falls in the red area, it means the result is unlikely by chance, so we reject $H_0$​. If it\'s in the green area, we fail to reject $H_0$, meaning there isn\'t enough evidence to conclude a significant result.')
+                st.write('The p-value tells us how likely it is to get a result as extreme as (or more extreme than) the one we observed, assuming the null hypothesis ($H_0$) is true. Think of it like a measure of surprise: a small p-value (less than 0.05) means the result is very surprising if $H_0$ were true, so we have reason to reject $H_0$​ and consider the result significant. A large p-value (greater than 0.05) means the result is not surprising under $H_0$, so we fail to reject $H_0$ and treat the result as not significant. In short, the smaller the p-value, the stronger the evidence against $H_0$​.')
+
+        st.text('🧐 Is there a signficant difference between your letter grades?')
+
+        with st.expander('💡 Here\'s one way to answer this! (Technical explanation ahead)',expanded=False):
+            st.markdown('''We can use the **Kruskal-Wallis test**, a non-parametric statistical method for testing whether samples come from the same distribution. This test is suited for non-normal ordinal data.''')
+            
+            st.markdown('''But we must assume the following conditions:
+            \n1. Samples to be compared are independent. *(Most likely not!)*
+            \n2. The data is assumed to be a non-normal or skewed distribution.
+            \n3. Each group should have at least 5 observations (for simplicity, intersessions will be ignored.
+            \n4. Moreover, we'll use the standard 95% confidence level for this test.''')
+
+            st.markdown('''Specifically, we use the following hypotheses:
+            \n  $H_0$: The population medians of all groups are equal.
+            \n  $H_1$: The population medians are not equal (i.e. at least one group has a differing median''')
+
+        compare_options = ['Two semesters', 'Two year levels', 'All semesters', 'All year levels']
+        with st.container(border=True):
+            compare_selected = st.selectbox('What do you want to compare?', compare_options)
+
+        year_levels = grades.get_all_year_levels()
+
+        # Two semesters
+        if compare_selected == 'Two semesters':
+            with st.form(key='two_semesters'):
+                col1, col2 = st.columns(2, gap='medium')
+
+                col1.caption('Semester A')
+                col1.selectbox('Year level', options=year_levels, key='year_A')
+                col1.selectbox('Semester', options=['1st Semester', '2nd Semester'], key='sem_A')
+
+                col2.caption('Semester B')
+                col2.selectbox('Year level', options=year_levels, key='year_B')
+                col2.selectbox('Semester', options=['1st Semester', '2nd Semester'], index=1, key='sem_B')
+
+                submit_compare = st.form_submit_button('Compare')
+
+            semester_A = f'{ss.year_A}-{ss.sem_A[0]}'
+            semester_B = f'{ss.year_B}-{ss.sem_B[0]}'
+
+            if semester_A == semester_B or semester_A == grades.last_sem or semester_B == grades.last_sem:
+                st.info('Sorry, you have inputted either the same semester or a future semester. Please change your input and try again!')
+            else:
+                if submit_compare:
+                    sample_a, sample_b = grades.get_two_group_grades(semester_A, semester_B)
+                    test_stat, p_val = stats.kruskal(sample_a, sample_b)
+                    stat_analyze(2-1, test_stat, p_val, text_1='the two semesters', text_2='both semesters')
+
+        # Two year levels
+        if compare_selected == 'Two year levels':
+            if len(year_levels) == 1:
+                st.info('Sorry, you must have at least two yearly QPIs for this analysis.')
+            else:
+                with st.form(key='two_years'):
+                    col1, col2 = st.columns(2, gap='medium')
+
+                    col1.caption('Semester A')
+                    col1.selectbox('Year level', options=year_levels, key='year_only_A')
+
+                    col2.caption('Semester B')
+                    col2.selectbox('Year level', options=year_levels, index=1, key='year_only_B')
+
+                    submit_compare = st.form_submit_button('Compare')
+
+                if ss.year_only_A == ss.year_only_B:
+                    st.info('Sorry, you have inputted the same year level. Please change your input and try again!')
+                else:
+                    if submit_compare:
+                        sample_a, sample_b = grades.get_two_group_grades(ss.year_only_A, ss.year_only_B)
+                        test_stat, p_val = stats.kruskal(sample_a, sample_b)
+                        stat_analyze(2-1, test_stat, p_val, text_1='the two year levels', text_2='both year levels')
+
+        if compare_selected == 'All semesters':
+            samples = grades.get_all_group_grades('semester').tolist()
+            test_stat, p_val = stats.kruskal(*samples)
+            stat_analyze(len(samples)-1, test_stat, p_val, text_1='all semesters', text_2='all semesters')
+
+        if compare_selected == 'All year levels':
+            samples = grades.get_all_group_grades('year').tolist()
+            test_stat, p_val = stats.kruskal(*samples)
+            stat_analyze(len(samples)-1, test_stat, p_val, text_1='all year levels', text_2='all year levels')
 
 
     if ss.tab == 'RETAINMENT':
@@ -437,13 +541,13 @@ else:
         with col1:
             val = '✔️' if grades.latest_yearly_qpi() >= ls_retainment[year_level][1] else '⚠️'
             with st.container(border=True):
-                st.metric(f'{ls_retainment[year_level][0]} Retainment', float(ls_retainment[year_level][1]))
+                st.metric(label=f'{ls_retainment[year_level][0]} Retainment', value=float(ls_retainment[year_level][1]))
             with st.container(border=True):
                 previous_school_year = None if year_level == 1 else grades.adjust_school_year(grades.last_sem[:-2], -1)
                 yearly_delta = round(grades.latest_yearly_qpi() - grades.yearly_qpi(previous_school_year),3)
-                st.metric(f'Current Yearly QPI', f'{grades.latest_yearly_qpi()}  {val}')
+                st.metric(label=f'Current Yearly QPI', value=f'{grades.latest_yearly_qpi()}  {val}')
             with st.container(border=True):
-                st.metric('Relative Percent', value=f'{round((grades.latest_yearly_qpi()/float(ls_retainment[year_level][1]))*100,2)}%', help='Your QPI is this percent higher than the required retainment grade.')
+                st.metric(label='Relative Percent', value=f'{round((grades.latest_yearly_qpi()/float(ls_retainment[year_level][1]))*100,2)}%', help='Your QPI is this percent higher than the required retainment grade.')
 
         with col2:
             with st.container(border=True):
@@ -501,7 +605,7 @@ else:
             with col2:
                 for letter in letters.keys():
                     with st.container(border=True):
-                        st.metric(f'Total **{letter}**s', grades.get_total_letters(letter))
+                        st.metric(label=f'Total **{letter}**s', value=grades.get_total_letters(letter))
 
         if ss.duration == 'Current Semester':
             st.info('Currently under development!')
@@ -511,14 +615,9 @@ else:
     if ss.tab == 'LATIN HONORS':
 
         st.write('**🎓 Latin Honor Eligibility**')
-        st.number_input('How many computable units do you have left?', step=1, min_value=0, help='Computable units refer to units used in computing your cumulative QPI (e.g. PE is not included)', key='remaining_units')
+        st.number_input('How many computable units do you have left?', step=1, min_value=0, help='Computable units refer to units used in computing your cumulative QPI (e.g. INTACT is not included)', key='remaining_units')
         if st.session_state.remaining_units != 0:
-
-            if not ss['latin_honor_toast']:
-                st.toast('Scroll down to find the Latin Honor Eligibility section!', icon='👋')
-            latin_honor_toast()
-
-            st.selectbox('Check eligibility', honors_dict.keys(), index=3, key='check_eligibility')
+            st.selectbox('Check Eligibility', honors_dict.keys(), index=3, default='Honorable Mention', key='check_eligibility')
 
         if st.session_state.remaining_units:
             remaining = st.session_state.remaining_units
@@ -548,7 +647,7 @@ else:
                         if minimum_required > 0:
                             st.caption(f'To do this, get a minimum QPI of {minimum_required} on your remaining {remaining} units.')
                 with st.container(border=True):
-                    st.metric('Highest attainable QPI', highest_possible)
+                    st.metric(label='Highest attainable QPI', value=highest_possible)
                     # st.write(f'Highest attainable QPI: {highest_possible}\nHonor range: {honors_dict[honor][0]} to {honors_dict[honor][-1]}')
 
             add_vertical_space(1)

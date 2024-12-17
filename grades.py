@@ -220,3 +220,30 @@ class Grades:
     def get_total_letters(self, letter):
         df = self.df
         return df[df['Final Grade'] == letter].shape[0]
+
+    def get_all_year_levels(self):
+        df = self.df
+        df['School Year'] = df['Semester'].str[:-2]
+        return df['School Year'].unique()
+
+    def get_two_group_grades(self, choice_a, choice_b):
+        df = self.df
+
+        group_a = df[df['Semester'].str.startswith(choice_a)]['Numerical Grade'].tolist()
+        group_b = df[df['Semester'].str.startswith(choice_b)]['Numerical Grade'].tolist()
+
+        return (group_a, group_b)
+
+    def get_all_group_grades(self, option):
+        df = self.df
+
+        if option == 'semester':
+            df_grouped = df[df['Semester'].str[-1] != '0'].groupby('Semester')['Numerical Grade'].apply(list)
+            return df_grouped
+
+        elif option == 'year':
+            df_grouped = df.groupby('School Year')['Numerical Grade'].apply(list)
+            return df_grouped
+        
+
+

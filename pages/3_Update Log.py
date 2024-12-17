@@ -10,9 +10,14 @@ with st.sidebar:
 # Header
 st.caption('UPDATE LOG')
 
-# First Update
-st.subheader('1️⃣ QPI Wrapped 1.0')
-st.write('*January 8, 2024*\n\n- Created the first working version of QPI Wrapped.')
+# Third update
+st.subheader('3️⃣ QPI Wrapped 2.0')
+st.write('*December 16, 2024*')
+st.write("""
+- Changed layout to pill-buttons for navigating different sections
+- Changed layout of 'Feedback and More' page
+- Added the 'Letter Grade Comparison' in the 'Analysis' section
+""")
 
 st.divider()
 
@@ -35,14 +40,12 @@ st.write("""
 
 st.divider()
 
-# Third update
-st.subheader('3️⃣ QPI Wrapped 2.0')
-st.write('*December 16, 2024*')
-st.write("""
-- Changed layout to pill-buttons for navigating different sections
-- Changed layout of 'Feedback and More' section
-- Added 
-""")
+# First Update
+st.subheader('1️⃣ QPI Wrapped 1.0')
+st.write('*January 8, 2024*\n\n- Created the first working version of QPI Wrapped.')
+
+st.divider()
+
 
 # # Plans for third update
 # st.subheader('🛠️ Plans for QPI Wrapped 2.0')
