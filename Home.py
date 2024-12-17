@@ -490,8 +490,8 @@ else:
             semester_B = f'{ss.year_B}-{ss.sem_B[0]}'
 
             condition_1 = semester_A == semester_B
-            condition_2 = ss.year_A == grades.last_sem[:-2] and ss.sem_A > grades.last_sem[-1]
-            condition_3 = ss.year_B == grades.last_sem[:-2] and ss.sem_B > grades.last_sem[-1]
+            condition_2 = ss.year_A == grades.last_sem[:-2] and ss.sem_A[0] > grades.last_sem[-1]
+            condition_3 = ss.year_B == grades.last_sem[:-2] and ss.sem_B[0] > grades.last_sem[-1]
 
             if condition_1 or condition_2 or condition_3:
                 st.info('Sorry, you have inputted either the same semester or a future semester. Please change your input and try again!')
@@ -621,7 +621,7 @@ else:
         st.write('**🎓 Latin Honor Eligibility**')
         st.number_input('How many computable units do you have left?', step=1, min_value=0, help='Computable units refer to units used in computing your cumulative QPI (e.g. INTACT is not included)', key='remaining_units')
         if st.session_state.remaining_units != 0:
-            st.selectbox('Check Eligibility', honors_dict.keys(), index=3, default='Honorable Mention', key='check_eligibility')
+            st.selectbox('Check Eligibility', honors_dict.keys(), index=3, key='check_eligibility')
 
         if st.session_state.remaining_units:
             remaining = st.session_state.remaining_units
