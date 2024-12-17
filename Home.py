@@ -438,7 +438,7 @@ else:
                     st.write(f'There is *a statistically significant difference* in letter grades between {text_1} you inputted. This means the grades are not likely to be the same across {text_2}, and the difference we observe is unlikely to be due to random chance.')
                     st.info('Conclusion: We reject the null hypothesis!', icon='😳')
                 else:
-                    st.write('There is *no statistically significant difference* in letter grades between the two semesters you inputted. This means that any differences observed are likely due to random chance.')
+                    st.write(f'There is *no statistically significant difference* in letter grades between {text_1} you inputted. This means that any differences observed are likely due to random chance.')
                     st.info('Conclusion: We fail to reject the null hypothesis!', icon='😳')
             
             st.caption('VISUALIZATION')
