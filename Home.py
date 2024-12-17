@@ -463,7 +463,7 @@ else:
 
             st.markdown('''Specifically, we use the following hypotheses:
             \n  $H_0$: The population medians of all groups are equal.
-            \n  $H_1$: The population medians are not equal (i.e. at least one group has a differing median''')
+            \n  $H_1$: The population medians are not equal (i.e. at least one group has a differing median)''')
 
         compare_options = ['Two semesters', 'Two year levels', 'All semesters', 'All year levels']
         with st.container(border=True):
