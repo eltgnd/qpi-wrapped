@@ -489,7 +489,11 @@ else:
             semester_A = f'{ss.year_A}-{ss.sem_A[0]}'
             semester_B = f'{ss.year_B}-{ss.sem_B[0]}'
 
-            if semester_A == semester_B or semester_A == grades.last_sem or semester_B == grades.last_sem:
+            condition_1 = semester_A == semester_B
+            condition_2 = ss.year_A == grades.last_sem[:-2] and ss.sem_A > grades.last_sem[-1]
+            condition_3 = ss.year_B == grades.last_sem[:-2] and ss.sem_B > grades.last_sem[-1]
+
+            if condition_1 or condition_2 or condition_3:
                 st.info('Sorry, you have inputted either the same semester or a future semester. Please change your input and try again!')
             else:
                 if submit_compare:
