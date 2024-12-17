@@ -16,6 +16,7 @@ st.write('*December 16, 2024*')
 st.write("""
 - Changed layout to pill-buttons for navigating different sections
 - Changed layout of 'Feedback and More' page
+- Fixed errors due to formatting inconsistencies
 - Added the 'Letter Grade Comparison' in the 'Analysis' section
 """)
 

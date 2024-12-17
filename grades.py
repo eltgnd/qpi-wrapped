@@ -29,6 +29,8 @@ def get_table(s, part_of_qpi_only=True):
     
     full_df['Semester'] = full_df['School Year'] + '-' + full_df['Sem']
     df = full_df[['Semester', 'Subject Code', 'Units', 'Final Grade']]
+    df['Final Grade'] = df['Final Grade'].copy().str.strip()
+    df['Semester'] = df['Semester'].copy().str.replace(' ', '')
 
     return df
     
