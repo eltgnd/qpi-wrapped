@@ -78,13 +78,10 @@ for key,val in input_vars.items():
 def grade_submit(grades):
     with st.spinner('Creating your QPI Wrapped...'):
         time.sleep(3)
+        st.balloons()
     ss['grades'] = grades
     ss['grade_submit'] = True
     st.rerun()
-def find_out_button():
-    ss['find_out'] = True
-def latin_honor_toast():
-    ss['latin_honor_toast'] = True
 
 
 # Header
